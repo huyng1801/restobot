@@ -1,4 +1,0 @@
-# Rasa requirements
-rasa==3.6.19
-rasa-sdk==3.6.1
-requests==2.31.0

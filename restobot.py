@@ -12,13 +12,20 @@ import time
 import requests
 import webbrowser
 import warnings
+import os
 from pathlib import Path
 from threading import Thread
 import uvicorn
 
-# Suppress SQLAlchemy warnings 
+# Fix SQLAlchemy warnings và Rasa compatibility
+os.environ['SQLALCHEMY_WARN_20'] = '0'
+os.environ['SQLALCHEMY_SILENCE_UBER_WARNING'] = '1'
+os.environ['PYDANTIC_V1'] = '1'
+
+# Suppress additional warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", message=".*pydantic.*")
+warnings.filterwarnings("ignore", message=".*MovedIn20Warning.*")
 
 class RestoBot:
     def __init__(self):

@@ -1,0 +1,23 @@
+version: "3.1"
+
+stories:
+
+# Câu chuyện chào hỏi cơ bản
+- story: greet and goodbye
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - intent: goodbye
+  - action: utter_goodbye
+
+# Câu chuyện xem menu
+- story: view menu simple
+  steps:
+  - intent: view_menu
+  - action: action_show_menu
+
+# Câu chuyện đặt bàn đơn giản
+- story: book table simple
+  steps:
+  - intent: book_table
+  - action: action_book_table

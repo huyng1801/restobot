@@ -1,0 +1,10 @@
+from fastapi import APIRouter
+from app.api.v1 import auth, users, menu, tables, orders
+
+api_router = APIRouter()
+
+api_router.include_router(auth.router, prefix="/auth", tags=["authentication"])
+api_router.include_router(users.router, prefix="/users", tags=["users"])
+api_router.include_router(menu.router, prefix="/menu", tags=["menu"])
+api_router.include_router(tables.router, prefix="/tables", tags=["tables"])
+api_router.include_router(orders.router, prefix="/orders", tags=["orders"])

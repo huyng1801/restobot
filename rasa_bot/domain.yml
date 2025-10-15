@@ -1,0 +1,178 @@
+version: "3.1"
+
+intents:
+  - greet
+  - goodbye
+  - affirm
+  - deny
+  - mood_great
+  - mood_unhappy
+  - bot_challenge
+  
+  # Đặt bàn
+  - book_table
+  - ask_available_tables
+  - cancel_reservation
+  
+  # Xem thực đơn
+  - view_menu
+  - ask_menu_categories
+  - ask_featured_dishes
+  - ask_dish_price
+  - ask_dish_details
+  
+  # Đặt món
+  - order_food
+  - add_to_order
+  - view_current_order
+  - modify_order
+  - confirm_order
+  - cancel_order
+  
+  # Hỏi thông tin
+  - ask_opening_hours
+  - ask_address
+  - ask_contact
+  - ask_promotions
+  
+  # Gợi ý món ăn
+  - recommend_dishes
+  - ask_popular_dishes
+  - ask_special_dishes
+
+entities:
+  - number_of_people
+  - date
+  - time
+  - dish_name
+  - quantity
+  - table_type
+  - location
+
+slots:
+  number_of_people:
+    type: float
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: from_entity
+      entity: number_of_people
+    
+  reservation_date:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: from_entity
+      entity: date
+    
+  reservation_time:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: from_entity
+      entity: time
+    
+  table_type:
+    type: text
+    initial_value: null
+    influence_conversation: false
+    mappings:
+    - type: from_entity
+      entity: table_type
+    
+  current_order:
+    type: list
+    initial_value: []
+    influence_conversation: true
+    mappings:
+    - type: custom
+    
+  last_mentioned_dish:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: from_entity
+      entity: food_item
+
+responses:
+  utter_greet:
+  - text: "Xin chào! Tôi là trợ lý ảo của nhà hàng. Tôi có thể giúp bạn đặt bàn, xem thực đơn, gọi món hoặc trả lời các câu hỏi về nhà hàng. Bạn cần tôi hỗ trợ gì?"
+
+  utter_goodbye:
+  - text: "Tạm biệt! Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi. Chúc bạn có một ngày tuyệt vời!"
+
+  utter_iamabot:
+  - text: "Tôi là trợ lý ảo của nhà hàng, được tạo ra để hỗ trợ bạn với các dịch vụ đặt bàn, gọi món và thông tin nhà hàng."
+
+  utter_ask_number_of_people:
+  - text: "Bạn muốn đặt bàn cho bao nhiêu người?"
+
+  utter_ask_reservation_date:
+  - text: "Bạn muốn đặt bàn vào ngày nào? (Ví dụ: hôm nay, ngày mai, 15/10/2024)"
+
+  utter_ask_reservation_time:
+  - text: "Bạn muốn đặt bàn vào lúc mấy giờ? (Ví dụ: 19:00, 7 giờ tối)"
+
+  utter_confirm_reservation:
+  - text: "Tôi sẽ đặt bàn cho {number_of_people} người vào lúc {reservation_time} ngày {reservation_date}. Bạn có xác nhận không?"
+
+  utter_reservation_success:
+  - text: "Đã đặt bàn thành công! Mã đặt bàn của bạn là #{reservation_id}. Chúng tôi sẽ liên hệ với bạn để xác nhận."
+
+  utter_show_menu:
+  - text: "Đây là thực đơn của chúng tôi. Bạn có thể xem theo danh mục hoặc tôi có thể giới thiệu những món đặc biệt."
+
+  utter_ask_dish_quantity:
+  - text: "Bạn muốn gọi bao nhiêu phần {dish_name}?"
+
+  utter_add_to_order_success:
+  - text: "Đã thêm {quantity} phần {dish_name} vào đơn hàng của bạn."
+
+  utter_show_current_order:
+  - text: "Đơn hàng hiện tại của bạn:"
+
+  utter_confirm_order:
+  - text: "Bạn có muốn xác nhận đơn hàng này không?"
+
+  utter_order_success:
+  - text: "Đơn hàng của bạn đã được xác nhận! Mã đơn hàng: #{order_id}. Thời gian chuẩn bị ước tính: {preparation_time} phút."
+
+  utter_opening_hours:
+  - text: "Nhà hàng mở cửa từ 10:00 sáng đến 10:00 tối, từ thứ 2 đến chủ nhật."
+
+  utter_address:
+  - text: "Địa chỉ nhà hàng: 123 Đường Nguyễn Văn Cừ, Quận 1, TP.HCM. Điện thoại: (028) 3123 4567"
+
+  utter_contact:
+  - text: "Thông tin liên hệ:\n📞 Điện thoại: (028) 3123 4567\n📧 Email: info@restobot.com\n🌐 Website: www.restobot.com"
+
+  utter_current_promotions:
+  - text: "Chương trình khuyến mãi hiện tại:\n🎉 Giảm 20% cho đơn hàng trên 500k\n🍰 Tặng món tráng miệng cho bàn từ 4 người\n🥤 Nước uống miễn phí vào thứ 3 hàng tuần"
+
+  utter_popular_dishes:
+  - text: "Những món ăn được yêu thích nhất tại nhà hàng:"
+
+  utter_special_dishes:
+  - text: "Món đặc biệt hôm nay:"
+
+  utter_default:
+  - text: "Xin lỗi, tôi không hiểu yêu cầu của bạn. Bạn có thể nói rõ hơn được không? Tôi có thể giúp bạn đặt bàn, xem thực đơn, gọi món hoặc trả lời thông tin về nhà hàng."
+
+actions:
+  - action_show_menu
+  - action_show_available_tables
+  - action_book_table
+  - action_add_to_order
+  - action_show_current_order
+  - action_confirm_order
+  - action_show_popular_dishes
+  - action_show_special_dishes
+  - action_cancel_reservation
+  - action_ask_dish_details
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true

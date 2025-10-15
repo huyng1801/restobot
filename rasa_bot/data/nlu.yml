@@ -1,0 +1,269 @@
+version: "3.1"
+
+nlu:
+# Chào hỏi
+- intent: greet
+  examples: |
+    - xin chào
+    - chào bạn
+    - hello
+    - hi
+    - chào
+    - xin chào nhà hàng
+    - tôi muốn được hỗ trợ
+    - bạn có thể giúp tôi không
+
+# Tạm biệt
+- intent: goodbye
+  examples: |
+    - tạm biệt
+    - chào tạm biệt
+    - bye
+    - goodbye
+    - hẹn gặp lại
+    - cảm ơn bạn
+    - tôi sẽ quay lại sau
+
+# Đồng ý
+- intent: affirm
+  examples: |
+    - có
+    - đúng
+    - được
+    - ok
+    - đồng ý
+    - xác nhận
+    - tôi đồng ý
+    - chính xác
+    - yes
+
+# Từ chối
+- intent: deny
+  examples: |
+    - không
+    - không phải
+    - sai rồi
+    - không đúng
+    - hủy bỏ
+    - tôi không muốn
+    - no
+
+# Đặt bàn
+- intent: book_table
+  examples: |
+    - tôi muốn đặt bàn
+    - đặt bàn cho [2](number_of_people) người
+    - tôi cần đặt chỗ cho [4](number_of_people) người
+    - đặt bàn [hôm nay](date) lúc [7 giờ tối](time)
+    - tôi muốn đặt bàn [ngày mai](date)
+    - đặt chỗ cho [6](number_of_people) người vào [thứ 7](date)
+    - tôi cần bàn [VIP](table_type)
+    - đặt bàn [gần cửa sổ](location)
+    - book table for [3](number_of_people) people
+    - đặt bàn [tối nay](date) [19:30](time)
+    - tôi muốn đặt bàn cho [gia đình](number_of_people)
+
+# Hỏi bàn trống
+- intent: ask_available_tables
+  examples: |
+    - có bàn trống không
+    - bàn nào đang trống
+    - còn chỗ không
+    - có chỗ cho [4](number_of_people) người không
+    - [tối nay](date) còn bàn không
+    - kiểm tra bàn trống
+    - xem bàn available
+
+# Hủy đặt bàn
+- intent: cancel_reservation
+  examples: |
+    - hủy đặt bàn
+    - tôi muốn hủy reservation
+    - cancel booking
+    - không đặt nữa
+    - hủy đặt chỗ
+    - tôi không đến được
+
+# Xem thực đơn
+- intent: view_menu
+  examples: |
+    - xem thực đơn
+    - cho tôi xem menu
+    - có món gì
+    - thực đơn như thế nào
+    - menu của nhà hàng
+    - tôi muốn xem món ăn
+    - show me the menu
+    - danh sách món ăn
+
+# Hỏi danh mục món
+- intent: ask_menu_categories
+  examples: |
+    - có những loại món gì
+    - danh mục món ăn
+    - phân loại thực đơn
+    - món ăn được chia thành mấy loại
+    - categories
+
+# Hỏi món đặc biệt
+- intent: ask_featured_dishes
+  examples: |
+    - món đặc biệt hôm nay
+    - featured dishes
+    - món nổi bật
+    - món được recommend
+    - món đặc trưng của nhà hàng
+
+# Hỏi giá món
+- intent: ask_dish_price
+  examples: |
+    - [bò bít tết](dish_name) giá bao nhiêu
+    - giá của [cá hồi nướng](dish_name)
+    - [phở bò](dish_name) bao nhiêu tiền
+    - món này giá bao nhiêu
+    - giá cả như thế nào
+    - [tiramisu](dish_name) có đắt không
+
+# Hỏi chi tiết món
+- intent: ask_dish_details
+  examples: |
+    - [bò bít tết](dish_name) như thế nào
+    - mô tả [cá hồi nướng](dish_name)
+    - [phở bò](dish_name) có gì
+    - món này làm từ gì
+    - ingredients của [salad caesar](dish_name)
+    - thành phần của món này
+
+# Gọi món
+- intent: order_food
+  examples: |
+    - tôi muốn gọi món
+    - order đồ ăn
+    - đặt món ăn
+    - tôi muốn ăn [phở bò](dish_name)
+    - cho tôi [2](quantity) phần [bò bít tết](dish_name)
+    - gọi [1](quantity) ly [cà phê](dish_name)
+    - tôi muốn thử [tiramisu](dish_name)
+
+# Thêm vào đơn
+- intent: add_to_order
+  examples: |
+    - thêm [cá hồi nướng](dish_name)
+    - add [2](quantity) [spring roll](dish_name)
+    - cho thêm [1](quantity) phần [phở bò](dish_name)
+    - tôi muốn thêm [salad](dish_name)
+    - add to cart [bò bít tết](dish_name)
+
+# Xem đơn hiện tại
+- intent: view_current_order
+  examples: |
+    - xem đơn hàng
+    - tôi đã gọi món gì
+    - current order
+    - kiểm tra đơn
+    - list món đã order
+
+# Sửa đơn
+- intent: modify_order
+  examples: |
+    - sửa đơn hàng
+    - thay đổi món
+    - bỏ [phở bò](dish_name) ra khỏi đơn
+    - tôi không muốn [cà phê](dish_name) nữa
+    - modify order
+    - change quantity
+
+# Xác nhận đơn
+- intent: confirm_order
+  examples: |
+    - xác nhận đơn hàng
+    - ok đơn này
+    - confirm order
+    - đặt món này
+    - hoàn tất order
+
+# Hủy đơn
+- intent: cancel_order
+  examples: |
+    - hủy đơn hàng
+    - cancel order
+    - không gọi món nữa
+    - tôi không muốn đặt
+
+# Hỏi giờ mở cửa
+- intent: ask_opening_hours
+  examples: |
+    - giờ mở cửa
+    - mấy giờ mở cửa
+    - opening hours
+    - nhà hàng mở cửa khi nào
+    - giờ hoạt động
+    - business hours
+
+# Hỏi địa chỉ
+- intent: ask_address
+  examples: |
+    - địa chỉ nhà hàng
+    - ở đâu
+    - address
+    - location
+    - nhà hàng nằm ở đâu
+    - chỉ đường
+
+# Hỏi liên hệ
+- intent: ask_contact
+  examples: |
+    - thông tin liên hệ
+    - số điện thoại
+    - contact
+    - phone number
+    - email
+    - cách liên lạc
+
+# Hỏi khuyến mãi
+- intent: ask_promotions
+  examples: |
+    - có khuyến mãi gì không
+    - promotion hiện tại
+    - giảm giá
+    - chương trình ưu đãi
+    - deals
+    - offers
+
+# Gợi ý món
+- intent: recommend_dishes
+  examples: |
+    - gợi ý món ăn
+    - recommend dishes
+    - món gì ngon
+    - bạn suggest món gì
+    - tôi nên ăn gì
+    - món nào đáng thử
+
+# Hỏi món phổ biến
+- intent: ask_popular_dishes
+  examples: |
+    - món nào được ưa chuộng
+    - popular dishes
+    - món bán chạy
+    - món được gọi nhiều
+    - best seller
+    - món hot
+
+# Hỏi món đặc biệt
+- intent: ask_special_dishes
+  examples: |
+    - món đặc biệt
+    - specialty
+    - signature dish
+    - món đặc trưng
+    - món chủ lực
+
+# Bot challenge
+- intent: bot_challenge
+  examples: |
+    - bạn là ai
+    - bạn là bot à
+    - you are a bot
+    - are you a robot
+    - bạn là con người không

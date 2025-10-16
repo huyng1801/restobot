@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
 """
-🍽️ RestoBot - Database Migration Script
-Thiết lập và migration database PostgreSQL với SQLAlchemy
+🍽️ RestoBot - Database Migration & Setup Script
+Thiết lập database PostgreSQL/SQLite và seed dữ liệu mẫu cho nhà hàng
+
+Usage:
+    python migrate.py           # Setup database với dữ liệu mẫu
+    python migrate.py --fresh   # Xóa và tạo lại database từ đầu
+    python migrate.py --info    # Hiển thị thông tin database
 """
 
 import os
 import sys
+import argparse
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import OperationalError
@@ -171,27 +177,59 @@ def show_database_info():
 
 def main():
     """Main function"""
-    import argparse
+    parser = argparse.ArgumentParser(
+        description='🍽️ RestoBot Database Migration & Setup',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+    python migrate.py              # Setup database với dữ liệu mẫu
+    python migrate.py --fresh      # Xóa và tạo lại database từ đầu  
+    python migrate.py --info       # Hiển thị thông tin database
+    python migrate.py --check      # Chỉ kiểm tra kết nối
+
+Note: 
+    - Nếu chưa có .env file, script sẽ sử dụng SQLite
+    - Để dùng PostgreSQL, tạo file .env với DATABASE_URL
+    """
+    )
     
-    parser = argparse.ArgumentParser(description='RestoBot Database Migration')
-    parser.add_argument('--fresh', action='store_true', help='Fresh install - xóa dữ liệu cũ')
-    parser.add_argument('--info', action='store_true', help='Hiển thị thông tin database')
-    parser.add_argument('--check', action='store_true', help='Chỉ kiểm tra kết nối')
+    parser.add_argument('--fresh', action='store_true', 
+                       help='Fresh install - xóa dữ liệu cũ và tạo lại từ đầu')
+    parser.add_argument('--info', action='store_true', 
+                       help='Hiển thị thông tin database hiện tại')
+    parser.add_argument('--check', action='store_true', 
+                       help='Chỉ kiểm tra kết nối database')
     
     args = parser.parse_args()
+    
+    print("=" * 60)
+    print("🍽️  RESTOBOT - Database Migration & Setup")
+    print("📊 Building an Intelligent Virtual Assistant for Restaurants")
+    print("=" * 60)
     
     if args.info:
         show_database_info()
     elif args.check:
-        check_database_connection()
-        check_tables_exist()
+        print("🔍 Kiểm tra kết nối database...")
+        if check_database_connection():
+            check_tables_exist()
+        else:
+            print("💡 Hướng dẫn:")
+            print("   1. Cài đặt PostgreSQL và tạo database")
+            print("   2. Tạo file .env với DATABASE_URL")
+            print("   3. Chạy lại script này")
     else:
+        print("🚀 Đang setup database...")
         success = run_migrations(fresh_install=args.fresh)
         if success:
+            print("\n" + "=" * 60)
             show_database_info()
-            logger.info("✅ Migration script hoàn thành!")
+            print("✅ Database setup hoàn thành!")
+            print("💡 Bây giờ có thể chạy: python restobot.py")
+            print("=" * 60)
         else:
-            logger.error("❌ Migration script thất bại!")
+            print("❌ Database setup thất bại!")
+            print("💡 Kiểm tra kết nối và thử lại")
             sys.exit(1)
 
 if __name__ == "__main__":

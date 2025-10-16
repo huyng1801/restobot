@@ -130,10 +130,17 @@
             font-size: 14px;
             outline: none;
             transition: border-color 0.3s;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         .chat-input:focus {
             border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+
+        .chat-input::placeholder {
+            color: #6c757d;
+            font-style: italic;
         }
 
         .send-button {
@@ -194,21 +201,26 @@
             flex-wrap: wrap;
             gap: 8px;
             margin-top: 10px;
+            padding: 0 15px;
         }
 
         .quick-button {
-            padding: 6px 12px;
+            padding: 8px 12px;
             background: #f8f9fa;
             border: 1px solid #dee2e6;
             border-radius: 15px;
-            font-size: 12px;
+            font-size: 11px;
             cursor: pointer;
             transition: all 0.3s;
+            white-space: nowrap;
+            flex: 0 1 auto;
         }
 
         .quick-button:hover {
             background: #e9ecef;
             border-color: #adb5bd;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
     </style>
 </head>
@@ -223,20 +235,28 @@
             <div class="message bot">
                 <div class="message-avatar">🤖</div>
                 <div class="message-content">
-                    Xin chào! Tôi là RestoBot - trợ lý ảo của nhà hàng. Tôi có thể giúp bạn:
-                    <br>• Xem thực đơn
-                    <br>• Đặt bàn 
-                    <br>• Gọi món ăn
-                    <br>• Hỏi thông tin nhà hàng
-                    <br><br>Bạn cần tôi hỗ trợ gì?
+                    <strong>🍽️ Xin chào! Tôi là RestoBot - trợ lý ảo nhà hàng.</strong>
+                    <br><br>
+                    <strong>📋 Tôi có thể giúp bạn:</strong>
+                    <br>• 🪑 <strong>Đặt bàn</strong> - Format: "Đặt bàn [số người] người ngày [dd/mm/yyyy] lúc [hh:mm]"
+                    <br>• 📋 <strong>Xem thực đơn</strong> và gợi ý món ăn
+                    <br>• 🍜 <strong>Gọi món ăn</strong> và quản lý đơn hàng
+                    <br>• 📍 <strong>Thông tin nhà hàng</strong> (địa chỉ, giờ mở cửa, liên hệ)
+                    <br><br>
+                    <strong>💡 Ví dụ đặt bàn:</strong>
+                    <br>"<em>Đặt bàn 4 người ngày 20/10/2025 lúc 19:00</em>"
+                    <br><br>
+                    <strong>🎯 Bạn có thể sử dụng các nút bên dưới hoặc nhập trực tiếp!</strong>
                 </div>
             </div>
             
             <div class="quick-buttons">
-                <div class="quick-button" onclick="sendQuickMessage('Xin chào')">👋 Chào hỏi</div>
-                <div class="quick-button" onclick="sendQuickMessage('Cho tôi xem menu')">📋 Xem menu</div>
-                <div class="quick-button" onclick="sendQuickMessage('Tôi muốn đặt bàn')">🪑 Đặt bàn</div>
-                <div class="quick-button" onclick="sendQuickMessage('Nhà hàng ở đâu?')">📍 Thông tin</div>
+                <div class="quick-button" onclick="sendQuickMessage('👋 Xin chào')">👋 Chào hỏi</div>
+                <div class="quick-button" onclick="sendQuickMessage('📋 Cho tôi xem menu')">📋 Menu</div>
+                <div class="quick-button" onclick="generateBookingTemplate()">📝 Mẫu đặt bàn</div>
+                <div class="quick-button" onclick="sendQuickMessage('📍 Nhà hàng ở đâu?')">📍 Địa chỉ</div>
+                <div class="quick-button" onclick="sendQuickMessage('⏰ Giờ mở cửa')">⏰ Giờ mở</div>
+                <div class="quick-button" onclick="sendQuickMessage('� Thông tin liên hệ')">📞 Liên hệ</div>
             </div>
         </div>
 
@@ -250,7 +270,7 @@
                     type="text" 
                     class="chat-input" 
                     id="messageInput" 
-                    placeholder="Nhập tin nhắn của bạn..."
+                    placeholder="Ví dụ: Đặt bàn 4 người ngày 20/10/2025 lúc 19:00"
                     autocomplete="off"
                 >
                 <button type="submit" class="send-button" id="sendButton">
@@ -393,6 +413,21 @@
         function sendQuickMessage(message) {
             document.getElementById('messageInput').value = message;
             sendMessage({ preventDefault: () => {} });
+        }
+
+        function generateBookingTemplate() {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            const day = tomorrow.getDate().toString().padStart(2, '0');
+            const month = (tomorrow.getMonth() + 1).toString().padStart(2, '0');
+            const year = tomorrow.getFullYear();
+            
+            const template = `Đặt bàn 4 người ngày ${day}/${month}/${year} lúc 19:00`;
+            document.getElementById('messageInput').value = template;
+            document.getElementById('messageInput').focus();
+            document.getElementById('messageInput').select();
         }
 
         function addMessage(text, sender) {

@@ -2,7 +2,7 @@ version: "3.1"
 
 stories:
 
-# Câu chuyện chào hỏi cơ bản
+# ===== BASIC INTERACTION =====
 - story: greet and goodbye
   steps:
   - intent: greet
@@ -10,14 +10,155 @@ stories:
   - intent: goodbye
   - action: utter_goodbye
 
-# Câu chuyện xem menu
-- story: view menu simple
+# ===== MENU & DISHES =====
+- story: view menu
   steps:
   - intent: view_menu
   - action: action_show_menu
 
-# Câu chuyện đặt bàn đơn giản
-- story: book table simple
+- story: view menu categories
   steps:
+  - intent: ask_menu_categories
+  - action: action_show_menu
+
+- story: view featured dishes
+  steps:
+  - intent: ask_featured_dishes
+  - action: action_show_special_dishes
+
+- story: ask popular dishes
+  steps:
+  - intent: ask_popular_dishes
+  - action: action_show_popular_dishes
+
+- story: ask special dishes
+  steps:
+  - intent: ask_special_dishes
+  - action: action_show_special_dishes
+
+- story: recommend dishes
+  steps:
+  - intent: recommend_dishes
+  - action: action_recommend_dishes
+
+- story: ask dish details
+  steps:
+  - intent: ask_dish_details
+  - action: action_ask_dish_details
+
+- story: ask dish price
+  steps:
+  - intent: ask_dish_price
+  - action: action_ask_dish_details
+
+# ===== BOOKING =====
+- story: book table
+  steps:
+  - intent: book_table
+  - action: action_book_table
+
+- story: confirm booking
+  steps:
+  - intent: confirm_booking
+  - action: action_confirm_booking
+
+- story: modify booking
+  steps:
+  - intent: modify_booking
+  - action: action_modify_booking
+
+- story: cancel reservation
+  steps:
+  - intent: cancel_reservation
+  - action: action_cancel_reservation
+
+- story: check available tables
+  steps:
+  - intent: ask_available_tables
+  - action: action_show_available_tables
+
+# ===== ORDERING =====
+- story: order food
+  steps:
+  - intent: order_food
+  - action: action_add_to_order
+
+- story: add to order
+  steps:
+  - intent: add_to_order
+  - action: action_add_to_order
+
+- story: view current order
+  steps:
+  - intent: view_current_order
+  - action: action_show_current_order
+
+- story: modify order
+  steps:
+  - intent: modify_order
+  - action: action_modify_order
+
+- story: confirm order
+  steps:
+  - intent: confirm_order
+  - action: action_confirm_order
+
+- story: cancel order
+  steps:
+  - intent: cancel_order
+  - action: action_cancel_order
+
+# ===== RESTAURANT INFO =====
+- story: ask opening hours
+  steps:
+  - intent: ask_opening_hours
+  - action: action_show_opening_hours
+
+- story: ask address
+  steps:
+  - intent: ask_address
+  - action: action_show_address
+
+- story: ask contact
+  steps:
+  - intent: ask_contact
+  - action: action_show_contact
+
+- story: ask promotions
+  steps:
+  - intent: ask_promotions
+  - action: action_show_promotions
+
+# ===== COMPLETE FLOWS =====
+- story: complete menu to order flow
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - intent: view_menu
+  - action: action_show_menu
+  - intent: ask_dish_price
+  - action: action_ask_dish_details
+  - intent: order_food
+  - action: action_add_to_order
+  - intent: confirm_order
+  - action: action_confirm_order
+
+- story: complete booking flow
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - intent: book_table
+  - action: action_book_table
+  - intent: confirm_booking
+  - action: action_confirm_booking
+  - intent: goodbye
+  - action: utter_goodbye
+
+- story: menu then booking
+  steps:
+  - intent: view_menu
+  - action: action_show_menu
+  - intent: ask_popular_dishes
+  - action: action_show_popular_dishes
   - intent: book_table
   - action: action_book_table

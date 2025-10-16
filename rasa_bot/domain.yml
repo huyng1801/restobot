@@ -5,14 +5,14 @@ intents:
   - goodbye
   - affirm
   - deny
-  - mood_great
-  - mood_unhappy
   - bot_challenge
   
   # Đặt bàn
   - book_table
   - ask_available_tables
   - cancel_reservation
+  - confirm_booking
+  - modify_booking
   
   # Xem thực đơn
   - view_menu
@@ -48,10 +48,14 @@ entities:
   - quantity
   - table_type
   - location
+  - confirmation
+  - modification_type
+  - phone_number
+  - customer_name
 
 slots:
   number_of_people:
-    type: float
+    type: text
     initial_value: null
     influence_conversation: true
     mappings:
@@ -89,13 +93,89 @@ slots:
     mappings:
     - type: custom
     
+  dish_name:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: from_entity
+      entity: dish_name
+    
   last_mentioned_dish:
     type: text
     initial_value: null
     influence_conversation: true
     mappings:
     - type: from_entity
-      entity: food_item
+      entity: dish_name
+    
+  # Context management slots
+  conversation_context:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: custom
+    
+  current_step:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: custom
+    
+  pending_confirmation:
+    type: bool
+    initial_value: false
+    influence_conversation: true
+    mappings:
+    - type: custom
+    
+  # Booking management slots
+  last_booking_id:
+    type: text
+    initial_value: null
+    influence_conversation: false
+    mappings:
+    - type: custom
+    
+  # Customer information slots
+  customer_name:
+    type: text
+    initial_value: null
+    influence_conversation: false
+    mappings:
+    - type: from_entity
+      entity: customer_name
+    
+  customer_phone:
+    type: text
+    initial_value: null
+    influence_conversation: false
+    mappings:
+    - type: from_entity
+      entity: phone_number
+    
+  # Order management slots
+  current_dish_quantity:
+    type: float
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: from_entity
+      entity: quantity
+
+forms:
+  booking_form:
+    required_slots:
+      - number_of_people
+      - reservation_date
+      - reservation_time
+      
+  order_form:
+    required_slots:
+      - dish_name
+      - current_dish_quantity
 
 responses:
   utter_greet:
@@ -111,10 +191,22 @@ responses:
   - text: "Bạn muốn đặt bàn cho bao nhiêu người?"
 
   utter_ask_reservation_date:
-  - text: "Bạn muốn đặt bàn vào ngày nào? (Ví dụ: hôm nay, ngày mai, 15/10/2024)"
+  - text: "Bạn muốn đặt bàn vào ngày nào? (Ví dụ: hôm nay, ngày mai, 20/10/2025)"
 
   utter_ask_reservation_time:
   - text: "Bạn muốn đặt bàn vào lúc mấy giờ? (Ví dụ: 19:00, 7 giờ tối)"
+
+  utter_ask_customer_name:
+  - text: "Xin cho biết tên của bạn để đặt bàn?"
+
+  utter_ask_customer_phone:
+  - text: "Xin cho biết số điện thoại liên hệ?"
+
+  utter_ask_dish_name:
+  - text: "Bạn muốn gọi món gì?"
+
+  utter_ask_current_dish_quantity:
+  - text: "Bạn muốn gọi bao nhiêu phần {last_mentioned_dish}?"
 
   utter_confirm_reservation:
   - text: "Tôi sẽ đặt bàn cho {number_of_people} người vào lúc {reservation_time} ngày {reservation_date}. Bạn có xác nhận không?"
@@ -168,10 +260,22 @@ actions:
   - action_add_to_order
   - action_show_current_order
   - action_confirm_order
+  - action_cancel_order
+  - action_modify_order
   - action_show_popular_dishes
   - action_show_special_dishes
   - action_cancel_reservation
   - action_ask_dish_details
+  - action_show_opening_hours
+  - action_show_address
+  - action_show_contact
+  - action_show_promotions
+  - action_recommend_dishes
+  - action_confirm_booking
+  - action_modify_booking
+  - action_deny_request
+  - booking_form
+  - order_form
 
 session_config:
   session_expiration_time: 60

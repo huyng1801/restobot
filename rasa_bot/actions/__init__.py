@@ -1,1 +1,2 @@
-from actions.actions import *
+# Import all actions from the actions module
+from .actions import *

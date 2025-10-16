@@ -408,8 +408,7 @@ def seed_database(db: Session):
 
 if __name__ == "__main__":
     # Script để chạy seed data trực tiếp
-    from app.core.database import get_db, engine
-    from app.models import Base
+    from app.core.database import get_db, engine, Base
     
     # Tạo tables
     Base.metadata.create_all(bind=engine)

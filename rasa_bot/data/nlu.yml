@@ -1,30 +1,30 @@
 version: "3.1"
 
 nlu:
-# Chào hỏi
+
+# ===== GREETING & GOODBYE =====
 - intent: greet
   examples: |
     - xin chào
     - chào bạn
-    - hello
-    - hi
     - chào
     - xin chào nhà hàng
     - tôi muốn được hỗ trợ
     - bạn có thể giúp tôi không
+    - hello
+    - hi
 
-# Tạm biệt
 - intent: goodbye
   examples: |
     - tạm biệt
     - chào tạm biệt
     - bye
-    - goodbye
     - hẹn gặp lại
     - cảm ơn bạn
     - tôi sẽ quay lại sau
+    - goodbye
 
-# Đồng ý
+# ===== CONFIRMATION & DENIAL =====
 - intent: affirm
   examples: |
     - có
@@ -36,8 +36,9 @@ nlu:
     - tôi đồng ý
     - chính xác
     - yes
+    - vâng
+    - ừ
 
-# Từ chối
 - intent: deny
   examples: |
     - không
@@ -47,8 +48,68 @@ nlu:
     - hủy bỏ
     - tôi không muốn
     - no
+    - không đồng ý
+    - không được
 
-# Đặt bàn
+# ===== MENU & DISHES =====
+- intent: view_menu
+  examples: |
+    - cho tôi xem thực đơn
+    - xem menu
+    - xem thực đơn
+    - thực đơn
+    - menu
+    - có những món gì
+    - bạn có các món nào
+    - danh sách món ăn
+    - show menu
+    - menu là gì
+
+- intent: ask_menu_categories
+  examples: |
+    - các loại món ăn
+    - chia theo danh mục
+    - phân loại menu
+    - có những danh mục nào
+    - menu có bao nhiêu phần
+    - món khai vị
+    - món chính
+    - tráng miệng
+    - đồ uống
+    - categories
+
+- intent: ask_featured_dishes
+  examples: |
+    - món nổi bật
+    - featured dishes
+    - món được đề xuất
+    - bạn recommend cái gì
+    - món hay nhất
+    - top dishes
+
+- intent: ask_dish_price
+  examples: |
+    - giá món này bao nhiêu
+    - bao nhiêu tiền
+    - món [phở bò](dish_name) giá mấy
+    - giá [cà phê](dish_name)
+    - giá cả
+    - cost
+    - price
+
+- intent: ask_dish_details
+  examples: |
+    - chi tiết về [phở bò](dish_name)
+    - mô tả [salad caesar](dish_name)
+    - [phở bò](dish_name) có gì
+    - món này làm từ gì
+    - ingredients của [salad caesar](dish_name)
+    - thành phần của món này
+    - món đó như thế nào
+    - mô tả món vừa rồi
+    - details
+
+# ===== BOOKING =====
 - intent: book_table
   examples: |
     - tôi muốn đặt bàn
@@ -58,12 +119,43 @@ nlu:
     - tôi muốn đặt bàn [ngày mai](date)
     - đặt chỗ cho [6](number_of_people) người vào [thứ 7](date)
     - tôi cần bàn [VIP](table_type)
+    - đặt bàn [thường](table_type)
+    - tôi muốn bàn [riêng tư](table_type)
     - đặt bàn [gần cửa sổ](location)
+    - tôi muốn ngồi [phía góc](location)
     - book table for [3](number_of_people) people
     - đặt bàn [tối nay](date) [19:30](time)
     - tôi muốn đặt bàn cho [gia đình](number_of_people)
+    - đặt bàn [4](number_of_people) người ngày [20/10/2025](date) lúc [19:00](time)
 
-# Hỏi bàn trống
+- intent: confirm_booking
+  examples: |
+    - xác nhận đặt bàn
+    - ok đặt bàn này
+    - đồng ý đặt bàn
+    - yes, đặt bàn
+    - được, đặt bàn
+    - tôi xác nhận đặt bàn
+    - confirm reservation
+
+- intent: modify_booking
+  examples: |
+    - thay đổi thông tin đặt bàn
+    - sửa lại đặt bàn
+    - tôi muốn đổi giờ
+    - thay đổi số người
+    - đổi ngày đặt bàn
+    - modify booking
+    - chỉnh sửa reservation
+
+- intent: cancel_reservation
+  examples: |
+    - hủy đặt bàn
+    - tôi muốn hủy reservation
+    - bỏ đặt bàn
+    - cancel reservation
+    - không muốn đặt nữa
+
 - intent: ask_available_tables
   examples: |
     - có bàn trống không
@@ -72,98 +164,37 @@ nlu:
     - có chỗ cho [4](number_of_people) người không
     - [tối nay](date) còn bàn không
     - kiểm tra bàn trống
-    - xem bàn available
+    - available tables
 
-# Hủy đặt bàn
-- intent: cancel_reservation
-  examples: |
-    - hủy đặt bàn
-    - tôi muốn hủy reservation
-    - cancel booking
-    - không đặt nữa
-    - hủy đặt chỗ
-    - tôi không đến được
-
-# Xem thực đơn
-- intent: view_menu
-  examples: |
-    - xem thực đơn
-    - cho tôi xem menu
-    - có món gì
-    - thực đơn như thế nào
-    - menu của nhà hàng
-    - tôi muốn xem món ăn
-    - show me the menu
-    - danh sách món ăn
-
-# Hỏi danh mục món
-- intent: ask_menu_categories
-  examples: |
-    - có những loại món gì
-    - danh mục món ăn
-    - phân loại thực đơn
-    - món ăn được chia thành mấy loại
-    - categories
-
-# Hỏi món đặc biệt
-- intent: ask_featured_dishes
-  examples: |
-    - món đặc biệt hôm nay
-    - featured dishes
-    - món nổi bật
-    - món được recommend
-    - món đặc trưng của nhà hàng
-
-# Hỏi giá món
-- intent: ask_dish_price
-  examples: |
-    - [bò bít tết](dish_name) giá bao nhiêu
-    - giá của [cá hồi nướng](dish_name)
-    - [phở bò](dish_name) bao nhiêu tiền
-    - món này giá bao nhiêu
-    - giá cả như thế nào
-    - [tiramisu](dish_name) có đắt không
-
-# Hỏi chi tiết món
-- intent: ask_dish_details
-  examples: |
-    - [bò bít tết](dish_name) như thế nào
-    - mô tả [cá hồi nướng](dish_name)
-    - [phở bò](dish_name) có gì
-    - món này làm từ gì
-    - ingredients của [salad caesar](dish_name)
-    - thành phần của món này
-
-# Gọi món
+# ===== ORDERING =====
 - intent: order_food
   examples: |
     - tôi muốn gọi món
-    - order đồ ăn
+    - gọi đồ ăn
     - đặt món ăn
     - tôi muốn ăn [phở bò](dish_name)
     - cho tôi [2](quantity) phần [bò bít tết](dish_name)
     - gọi [1](quantity) ly [cà phê](dish_name)
     - tôi muốn thử [tiramisu](dish_name)
+    - order food
 
-# Thêm vào đơn
 - intent: add_to_order
   examples: |
     - thêm [cá hồi nướng](dish_name)
-    - add [2](quantity) [spring roll](dish_name)
     - cho thêm [1](quantity) phần [phở bò](dish_name)
     - tôi muốn thêm [salad](dish_name)
     - add to cart [bò bít tết](dish_name)
+    - thêm một phần nữa
 
-# Xem đơn hiện tại
 - intent: view_current_order
   examples: |
     - xem đơn hàng
     - tôi đã gọi món gì
-    - current order
     - kiểm tra đơn
-    - list món đã order
+    - danh sách món đã order
+    - show my order
+    - current order
 
-# Sửa đơn
 - intent: modify_order
   examples: |
     - sửa đơn hàng
@@ -172,35 +203,67 @@ nlu:
     - tôi không muốn [cà phê](dish_name) nữa
     - modify order
     - change quantity
+    - sửa lại đơn
 
-# Xác nhận đơn
 - intent: confirm_order
   examples: |
     - xác nhận đơn hàng
     - ok đơn này
-    - confirm order
     - đặt món này
     - hoàn tất order
+    - confirm order
+    - được rồi, thanh toán
 
-# Hủy đơn
 - intent: cancel_order
   examples: |
     - hủy đơn hàng
-    - cancel order
     - không gọi món nữa
     - tôi không muốn đặt
+    - cancel order
+    - bỏ đơn
 
-# Hỏi giờ mở cửa
+# ===== RECOMMENDATIONS =====
+- intent: ask_popular_dishes
+  examples: |
+    - món nào được ưa chuộng
+    - món bán chạy
+    - món được gọi nhiều
+    - best seller
+    - món hot
+    - popular dishes
+    - món nào nổi tiếng
+
+- intent: ask_special_dishes
+  examples: |
+    - món đặc biệt
+    - signature dish
+    - món đặc trưng
+    - món chủ lực
+    - specialty
+    - specialty dishes
+    - những gì khác biệt
+
+- intent: recommend_dishes
+  examples: |
+    - gợi ý món ăn
+    - món gì ngon
+    - bạn suggest món gì
+    - tôi nên ăn gì
+    - món nào đáng thử
+    - recommend dishes
+
+# ===== RESTAURANT INFO =====
 - intent: ask_opening_hours
   examples: |
     - giờ mở cửa
     - mấy giờ mở cửa
-    - opening hours
     - nhà hàng mở cửa khi nào
     - giờ hoạt động
+    - opening hours
     - business hours
+    - giờ làm việc
+    - mở bao lâu
 
-# Hỏi địa chỉ
 - intent: ask_address
   examples: |
     - địa chỉ nhà hàng
@@ -209,8 +272,9 @@ nlu:
     - location
     - nhà hàng nằm ở đâu
     - chỉ đường
+    - how to get there
+    - ở tại đâu
 
-# Hỏi liên hệ
 - intent: ask_contact
   examples: |
     - thông tin liên hệ
@@ -219,8 +283,9 @@ nlu:
     - phone number
     - email
     - cách liên lạc
+    - contact info
+    - liên hệ với nhà hàng
 
-# Hỏi khuyến mãi
 - intent: ask_promotions
   examples: |
     - có khuyến mãi gì không
@@ -229,41 +294,15 @@ nlu:
     - chương trình ưu đãi
     - deals
     - offers
+    - có điều gì ưu đãi không
+    - giảm giá bao nhiêu
 
-# Gợi ý món
-- intent: recommend_dishes
-  examples: |
-    - gợi ý món ăn
-    - recommend dishes
-    - món gì ngon
-    - bạn suggest món gì
-    - tôi nên ăn gì
-    - món nào đáng thử
-
-# Hỏi món phổ biến
-- intent: ask_popular_dishes
-  examples: |
-    - món nào được ưa chuộng
-    - popular dishes
-    - món bán chạy
-    - món được gọi nhiều
-    - best seller
-    - món hot
-
-# Hỏi món đặc biệt
-- intent: ask_special_dishes
-  examples: |
-    - món đặc biệt
-    - specialty
-    - signature dish
-    - món đặc trưng
-    - món chủ lực
-
-# Bot challenge
+# ===== BOT CHALLENGE =====
 - intent: bot_challenge
   examples: |
     - bạn là ai
     - bạn là bot à
-    - you are a bot
     - are you a robot
     - bạn là con người không
+    - bạn là bot
+    - who are you

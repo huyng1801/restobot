@@ -199,21 +199,6 @@ def read_featured_items(
     items = menu_item_crud.get_featured(db)
     return items
 
-
-@router.get("/items/search", response_model=List[MenuItem])
-def search_menu_items(
-    *,
-    db: Session = Depends(get_db),
-    q: str = Query(..., min_length=1, description="Search term"),
-    current_user = Depends(get_current_user_optional),
-) -> Any:
-    """
-    Search menu items by name.
-    """
-    items = menu_item_crud.search_by_name(db, search_term=q)
-    return items
-
-
 @router.post("/items/", response_model=MenuItem)
 def create_menu_item(
     *,

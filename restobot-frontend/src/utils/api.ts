@@ -183,7 +183,6 @@ export const endpoints = {
     categoriesWithItems: '/api/v1/menu/categories/with-items',
     items: '/api/v1/menu/items/',
     featuredItems: '/api/v1/menu/items/featured',
-    searchItems: '/api/v1/menu/items/search',
     createCategory: '/api/v1/menu/categories/',
     createItem: '/api/v1/menu/items/',
     getCategory: (id: number) => `/api/v1/menu/categories/${id}`,

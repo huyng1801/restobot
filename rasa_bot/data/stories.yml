@@ -49,7 +49,7 @@ stories:
 - story: ask dish price
   steps:
   - intent: ask_dish_price
-  - action: action_ask_dish_details
+  - action: action_ask_dish_price
 
 # ===== BOOKING =====
 - story: book table
@@ -137,7 +137,7 @@ stories:
   - intent: view_menu
   - action: action_show_menu
   - intent: ask_dish_price
-  - action: action_ask_dish_details
+  - action: action_ask_dish_price
   - intent: order_food
   - action: action_add_to_order
   - intent: confirm_order
@@ -169,7 +169,6 @@ stories:
   steps:
   - intent: view_menu
   - action: action_show_menu
-  - action: action_update_conversation_context
   - intent: contextual_question  # "món đó giá bao nhiêu?"
   - action: action_conversation_manager
 
@@ -177,7 +176,6 @@ stories:
   steps:
   - intent: add_to_order
   - action: action_add_to_order
-  - action: action_update_conversation_context
   - intent: order_item_reference  # "món đầu tiên giá bao nhiêu?"
   - action: action_conversation_manager
 
@@ -193,27 +191,25 @@ stories:
   - intent: add_to_order
   - action: action_add_to_order
   - intent: view_current_order
-  - action: action_view_current_order
+  - action: action_show_current_order
   - intent: modify_order
-  - action: action_modify_order_item
+  - action: action_modify_order
 
 - story: booking confirmation with editing
   steps:
   - intent: book_table
   - action: action_book_table
-  - action: action_confirm_booking
   - intent: modify_specific_field  # "sửa ngày"
   - action: action_modify_booking
-  - intent: affirm
-  - action: action_book_table
+  - intent: confirm_booking
+  - action: action_confirm_booking
 
 - story: order confirmation with contextual modifications
   steps:
   - intent: add_to_order
   - action: action_add_to_order
-  - action: action_update_conversation_context
   - intent: confirm_order
-  - action: action_confirm_order_final
+  - action: action_confirm_order
   - intent: contextual_question  # "món đó xóa được không?"
   - action: action_conversation_manager
 
@@ -221,9 +217,8 @@ stories:
   steps:
   - intent: view_menu
   - action: action_show_menu
-  - action: action_update_conversation_context
-  - intent: bot_challenge  # unclear input
-  - action: action_smart_suggestion
+  - intent: contextual_question  # unclear input that needs context
+  - action: action_conversation_manager
 
 - story: natural conversation flow with context
   steps:
@@ -231,9 +226,7 @@ stories:
   - action: utter_greet
   - intent: view_menu
   - action: action_show_menu
-  - action: action_update_conversation_context
   - intent: contextual_question  # "cái này có ngon không?"
   - action: action_conversation_manager
   - intent: order_food
   - action: action_add_to_order
-  - action: action_update_conversation_context

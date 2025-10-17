@@ -7,9 +7,9 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import { router } from './utils/router';
 import { theme } from './theme/theme';
-import { AuthProvider } from './contexts/AuthContext';
-import { LoadingProvider } from './contexts/LoadingContext';
-import { ChatProvider } from './contexts/ChatContext';
+import { AuthProvider } from './context/AuthContext';
+import { LoadingProvider } from './context/LoadingContext';
+import { ChatProvider } from './context/ChatContext';
 
 // Global styles
 const globalStyles = (

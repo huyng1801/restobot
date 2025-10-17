@@ -1,5 +1,5 @@
 import { apiClient } from '../apiClient';
-import { UserCreate } from './types';
+import { UserCreate } from '../../types/adminTypes';
 
 export const authService = {
   register: (data: UserCreate) =>

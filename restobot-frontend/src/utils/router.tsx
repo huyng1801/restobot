@@ -9,11 +9,6 @@ import AdminRoute from '../components/auth/AdminRoute';
 const Login = lazy(() => import('../pages/auth/Login'));
 const Register = lazy(() => import('../pages/auth/Register'));
 const Chat = lazy(() => import('../pages/customer/Chat'));
-const Menu = lazy(() => import('../pages/customer/Menu'));
-const MyOrders = lazy(() => import('../pages/customer/MyOrders'));
-const MyReservations = lazy(() => import('../pages/customer/MyReservations'));
-const Profile = lazy(() => import('../pages/customer/Profile'));
-
 // Admin pages
 const Dashboard = lazy(() => import('../pages/admin/Dashboard'));
 const AdminMenu = lazy(() => import('../pages/admin/menu/AdminMenu'));
@@ -69,46 +64,6 @@ export const router = createBrowserRouter([
           <ProtectedRoute>
             <SuspenseWrapper>
               <Chat />
-            </SuspenseWrapper>
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'menu',
-        element: (
-          <ProtectedRoute>
-            <SuspenseWrapper>
-              <Menu />
-            </SuspenseWrapper>
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'orders',
-        element: (
-          <ProtectedRoute>
-            <SuspenseWrapper>
-              <MyOrders />
-            </SuspenseWrapper>
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'reservations',
-        element: (
-          <ProtectedRoute>
-            <SuspenseWrapper>
-              <MyReservations />
-            </SuspenseWrapper>
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'profile',
-        element: (
-          <ProtectedRoute>
-            <SuspenseWrapper>
-              <Profile />
             </SuspenseWrapper>
           </ProtectedRoute>
         ),

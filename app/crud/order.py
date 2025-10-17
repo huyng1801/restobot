@@ -5,7 +5,7 @@ from datetime import datetime, date
 from app.models.order import Order, OrderItem, Reservation, OrderStatus, PaymentStatus, ReservationStatus
 from app.models.menu import MenuItem
 from app.schemas.order import (
-    OrderCreate, OrderUpdate, OrderItemCreate, 
+    OrderCreate, OrderUpdate, 
     ReservationCreate, ReservationUpdate, OrderSummary
 )
 import uuid
@@ -403,6 +403,9 @@ class CRUDOrder:
         # Generate unique order number
         order_number = f"ORD-{datetime.now().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8].upper()}"
         
+        print(f"🔍 Debug CRUD: Creating order with customer_id={obj_in.customer_id}, table_id={obj_in.table_id}")
+        print(f"🔍 Debug CRUD: Order items count: {len(obj_in.order_items)}")
+        
         db_obj = Order(
             order_number=order_number,
             customer_id=obj_in.customer_id,
@@ -411,32 +414,49 @@ class CRUDOrder:
         )
         db.add(db_obj)
         db.flush()  # To get the order ID
+        print(f"✅ Order flushed with ID: {db_obj.id}")
 
         # Add order items
         total_amount = 0.0
-        for item in obj_in.order_items:
-            menu_item = db.query(MenuItem).filter(MenuItem.id == item.menu_item_id).first()
-            if menu_item:
-                item_total = menu_item.price * item.quantity
-                total_amount += item_total
-                
-                order_item = OrderItem(
-                    order_id=db_obj.id,
-                    menu_item_id=item.menu_item_id,
-                    quantity=item.quantity,
-                    unit_price=menu_item.price,
-                    total_price=item_total,
-                    special_instructions=item.special_instructions,
-                )
-                db.add(order_item)
+        for i, item in enumerate(obj_in.order_items):
+            # Handle both dict and object formats
+            menu_item_id = item.get('menu_item_id') if isinstance(item, dict) else item.menu_item_id
+            quantity = item.get('quantity') if isinstance(item, dict) else item.quantity
+            special_instructions = item.get('special_instructions', '') if isinstance(item, dict) else (item.special_instructions or '')
+            
+            print(f"🔍 Debug CRUD: Processing item {i+1}: menu_item_id={menu_item_id}, quantity={quantity}")
+            
+            menu_item = db.query(MenuItem).filter(MenuItem.id == menu_item_id).first()
+            if not menu_item:
+                db.rollback()
+                raise ValueError(f"Menu item {menu_item_id} not found in database")
+            
+            print(f"✅ Found menu item: {menu_item.name} (price: {menu_item.price})")
+            
+            item_total = menu_item.price * quantity
+            total_amount += item_total
+            
+            order_item = OrderItem(
+                order_id=db_obj.id,
+                menu_item_id=menu_item_id,
+                quantity=quantity,
+                unit_price=menu_item.price,
+                total_price=item_total,
+                special_instructions=special_instructions,
+            )
+            db.add(order_item)
+            print(f"✅ Order item added: {menu_item.name} x{quantity} = {item_total}")
 
         # Calculate tax (10% for example)
         tax_amount = total_amount * 0.1
         db_obj.total_amount = total_amount
         db_obj.tax_amount = tax_amount
+        
+        print(f"🔍 Debug CRUD: Total amount={total_amount}, tax={tax_amount}")
 
         db.commit()
         db.refresh(db_obj)
+        print(f"✅ Order committed: {order_number}")
         return db_obj
 
     def update(self, db: Session, db_obj: Order, obj_in: OrderUpdate) -> Order:

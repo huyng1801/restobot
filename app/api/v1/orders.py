@@ -7,12 +7,11 @@ from sqlalchemy import func
 from app.core.database import get_db
 from app.crud.order import order as order_crud, reservation as reservation_crud
 from app.schemas.order import (
-    Order, OrderCreate, OrderUpdate, OrderWithDetails,
-    Reservation, ReservationCreate, ReservationUpdate, ReservationWithDetails,
+    Order, OrderCreate, OrderUpdate, ReservationCreate, ReservationUpdate, ReservationWithDetails,
     OrderSummary, DashboardStats, PaginatedReservationResponse, PaginatedOrderResponse
 )
 from app.models.order import OrderStatus, PaymentStatus, ReservationStatus
-from app.api.deps import get_current_user, get_current_staff_user, get_current_user_optional
+from app.api.deps import get_current_user, get_current_staff_user, get_current_user_optional, get_current_user_or_rasa
 
 router = APIRouter()
 
@@ -60,11 +59,16 @@ def read_my_reservations(
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
-    current_user = Depends(get_current_user),
+    current_user = Depends(get_current_user_or_rasa),
 ) -> Any:
     """
     Retrieve current user's reservations with table details.
+    Supports Rasa requests (returns empty list if no user).
     """
+    if not current_user:
+        # Rasa request or no user - return empty list
+        return []
+        
     reservations = reservation_crud.get_my_reservations_with_details(
         db, customer_id=current_user.id, skip=skip, limit=limit
     )
@@ -303,27 +307,55 @@ def create_order(
     """
     Create new order.
     """
-    # If user is authenticated, use their ID
-    if current_user:
-        order_in.customer_id = current_user.id
+    try:
+        # If user is authenticated AND no customer_id provided in request, use authenticated user's ID
+        # This allows Rasa to send explicit customer_id while still supporting normal user requests
+        if current_user and not order_in.customer_id:
+            order_in.customer_id = current_user.id
+        
+        # For debugging: print the final customer_id being used
+        print(f"🔍 Debug: Creating order with customer_id={order_in.customer_id}, authenticated_user={current_user.id if current_user else None}")
+        print(f"🔍 Debug: Order input data: {order_in}")
+        print(f"🔍 Debug: Order items: {order_in.order_items}")
+        
+        # Validate that all menu items exist and are available
+        from app.crud.menu import menu_item as menu_item_crud
+        for item in order_in.order_items:
+            # Handle both dict and object formats
+            menu_item_id = item.get('menu_item_id') if isinstance(item, dict) else item.menu_item_id
+            print(f"🔍 Debug: Validating menu item {menu_item_id}")
+            
+            menu_item = menu_item_crud.get(db, id=menu_item_id)
+            if not menu_item:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Menu item {menu_item_id} not found"
+                )
+            if not menu_item.is_available:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Menu item '{menu_item.name}' is not available"
+                )
+            print(f"✅ Menu item {menu_item.name} is valid")
+        
+        print(f"🔍 Debug: All items valid, creating order...")
+        order = order_crud.create(db, obj_in=order_in)
+        print(f"✅ Order created successfully: {order.id}")
+        return order
     
-    # Validate that all menu items exist and are available
-    from app.crud.menu import menu_item as menu_item_crud
-    for item in order_in.order_items:
-        menu_item = menu_item_crud.get(db, id=item.menu_item_id)
-        if not menu_item:
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Menu item {item.menu_item_id} not found"
-            )
-        if not menu_item.is_available:
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Menu item '{menu_item.name}' is not available"
-            )
-    
-    order = order_crud.create(db, obj_in=order_in)
-    return order
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
+    except Exception as e:
+        import traceback
+        error_msg = str(e)
+        traceback = traceback.format_exc()
+        print(f"❌ Error creating order: {error_msg}")
+        print(f"❌ Traceback: {traceback}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error: {error_msg}"
+        )
 
 
 @router.get("/orders/{order_id}", response_model=Order)
@@ -498,59 +530,94 @@ def add_item_to_order(
     """
     Add item to existing order.
     """
-    from app.models.order import OrderItem
-    from app.crud.menu import menu_item as menu_item_crud
+    try:
+        from app.models.order import OrderItem
+        from app.crud.menu import menu_item as menu_item_crud
+        
+        print(f"🔍 Debug: Add item to order - order_id={order_id}")
+        print(f"🔍 Debug: Item data: {item_data}")
+        print(f"🔍 Debug: Current user: {current_user.id if current_user else 'Anonymous'}")
+        
+        # Get order
+        order = order_crud.get(db, id=order_id)
+        if not order:
+            print(f"❌ Order {order_id} not found")
+            raise HTTPException(status_code=404, detail="Order not found")
+        
+        print(f"✅ Order found: {order.order_number}, customer_id={order.customer_id}")
+        
+        # Users can only modify their own orders unless they are staff+
+        from app.models.user import UserRole
+        if (current_user and current_user.role == UserRole.customer and 
+            order.customer_id != current_user.id):
+            print(f"❌ Permission denied: user {current_user.id} cannot modify order of customer {order.customer_id}")
+            raise HTTPException(status_code=403, detail="Not enough permissions")
+        
+        # Validate menu item
+        menu_item_id = item_data.get("menu_item_id")
+        quantity = item_data.get("quantity", 1)
+        special_instructions = item_data.get("special_instructions", "")
+        
+        print(f"🔍 Debug: Validating menu item {menu_item_id}")
+        
+        menu_item = menu_item_crud.get(db, id=menu_item_id)
+        if not menu_item:
+            print(f"❌ Menu item {menu_item_id} not found")
+            raise HTTPException(status_code=400, detail="Menu item not found")
+        if not menu_item.is_available:
+            print(f"❌ Menu item {menu_item_id} ({menu_item.name}) is not available")
+            raise HTTPException(status_code=400, detail=f"Menu item '{menu_item.name}' is not available")
+        
+        print(f"✅ Menu item valid: {menu_item.name} (price: {menu_item.price})")
+        
+        # Check if item already exists in order
+        existing_item = db.query(OrderItem).filter(
+            OrderItem.order_id == order_id,
+            OrderItem.menu_item_id == menu_item_id
+        ).first()
+        
+        if existing_item:
+            print(f"🔍 Debug: Item already exists in order, updating quantity")
+            # Update quantity
+            existing_item.quantity += quantity
+            existing_item.total_price = existing_item.quantity * existing_item.unit_price
+            db.commit()
+            db.refresh(existing_item)
+            print(f"✅ Item quantity updated: {menu_item.name} x{existing_item.quantity}")
+            return {"message": "Item quantity updated", "item_id": existing_item.id}
+        else:
+            print(f"🔍 Debug: Creating new order item")
+            # Create new order item
+            new_item = OrderItem(
+                order_id=order_id,
+                menu_item_id=menu_item_id,
+                quantity=quantity,
+                unit_price=menu_item.price,
+                total_price=menu_item.price * quantity,
+                special_instructions=special_instructions
+            )
+            db.add(new_item)
+            db.commit()
+            db.refresh(new_item)
+            
+            print(f"✅ New order item created: {menu_item.name} x{quantity}")
+            
+            # Update order total
+            order_crud.update_order_total(db, order_id=order_id)
+            
+            print(f"✅ Order total updated")
+            
+            return {"message": "Item added successfully", "item_id": new_item.id}
     
-    # Get order
-    order = order_crud.get(db, id=order_id)
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-    
-    # Users can only modify their own orders unless they are staff+
-    from app.models.user import UserRole
-    if (current_user and current_user.role == UserRole.customer and 
-        order.customer_id != current_user.id):
-        raise HTTPException(status_code=403, detail="Not enough permissions")
-    
-    # Validate menu item
-    menu_item_id = item_data.get("menu_item_id")
-    quantity = item_data.get("quantity", 1)
-    special_instructions = item_data.get("special_instructions", "")
-    
-    menu_item = menu_item_crud.get(db, id=menu_item_id)
-    if not menu_item:
-        raise HTTPException(status_code=400, detail="Menu item not found")
-    if not menu_item.is_available:
-        raise HTTPException(status_code=400, detail=f"Menu item '{menu_item.name}' is not available")
-    
-    # Check if item already exists in order
-    existing_item = db.query(OrderItem).filter(
-        OrderItem.order_id == order_id,
-        OrderItem.menu_item_id == menu_item_id
-    ).first()
-    
-    if existing_item:
-        # Update quantity
-        existing_item.quantity += quantity
-        existing_item.subtotal = existing_item.quantity * existing_item.unit_price
-        db.commit()
-        db.refresh(existing_item)
-        return {"message": "Item quantity updated", "item_id": existing_item.id}
-    else:
-        # Create new order item
-        new_item = OrderItem(
-            order_id=order_id,
-            menu_item_id=menu_item_id,
-            quantity=quantity,
-            unit_price=menu_item.price,
-            subtotal=menu_item.price * quantity,
-            special_instructions=special_instructions
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        error_msg = str(e)
+        tb = traceback.format_exc()
+        print(f"❌ Error adding item to order: {error_msg}")
+        print(f"❌ Traceback: {tb}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error: {error_msg}"
         )
-        db.add(new_item)
-        db.commit()
-        db.refresh(new_item)
-        
-        # Update order total
-        order_crud.update_order_total(db, order_id=order_id)
-        
-        return {"message": "Item added successfully", "item_id": new_item.id}

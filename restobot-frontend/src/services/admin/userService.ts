@@ -1,5 +1,5 @@
 import { apiClient } from '../apiClient';
-import { User, UserCreate, UserUpdate, UserRole } from './types';
+import { User, UserCreate, UserUpdate, UserRole } from '../../types/adminTypes';
 
 export const userService = {
   getCurrentUser: () =>

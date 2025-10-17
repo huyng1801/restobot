@@ -1,5 +1,5 @@
 import { apiClient } from '../apiClient';
-import { Order, OrderCreate, OrderStatus, DailySummary, DashboardStats, PaginatedOrderResponse } from './types';
+import { Order, OrderCreate, OrderStatus, DailySummary, DashboardStats, PaginatedOrderResponse } from '../../types/adminTypes';
 
 export const orderService = {
   getOrders: (skip = 0, limit = 100, status?: string, search?: string) =>

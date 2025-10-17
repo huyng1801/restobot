@@ -7,8 +7,7 @@ from typing import Any, Text, Dict, List
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet
-
-from .auth_helper import auth_helper
+from .auth_helper import auth_helper, get_auth_headers_from_tracker
 
 # URL của FastAPI backend
 API_BASE_URL = "http://localhost:8000/api/v1"
@@ -25,10 +24,8 @@ class ActionShowMenu(Action):
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         message = ""
         try:
-            headers = auth_helper.get_headers()
-            if not headers.get("Authorization"):
-                dispatcher.utter_message(text="⚠️ Không thể kết nối hệ thống. Vui lòng thử lại sau.")
-                return []
+            # Lấy auth headers từ token trong tracker, fallback to Rasa headers
+            headers = get_auth_headers_from_tracker(tracker)
 
             # Gọi API để lấy danh mục
             categories_response = requests.get(f"{API_BASE_URL}/menu/categories/", headers=headers, timeout=5)
@@ -118,10 +115,8 @@ class ActionAskDishDetails(Action):
             return []
             
         try:
-            headers = auth_helper.get_headers()
-            if not headers.get("Authorization"):
-                dispatcher.utter_message(text="⚠️ Không thể kết nối hệ thống. Vui lòng thử lại sau.")
-                return []
+            # Lấy auth headers từ token trong tracker, fallback to Rasa headers
+            headers = get_auth_headers_from_tracker(tracker)
 
             # Tìm món trong menu
             response = requests.get(f"{API_BASE_URL}/menu/items/search?q={dish_name}", headers=headers, timeout=5)
@@ -178,10 +173,8 @@ class ActionShowPopularDishes(Action):
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         message = ""
         try:
-            headers = auth_helper.get_headers()
-            if not headers.get("Authorization"):
-                dispatcher.utter_message(text="⚠️ Không thể kết nối hệ thống. Vui lòng thử lại sau.")
-                return []
+            # Lấy auth headers từ token trong tracker, fallback to Rasa headers
+            headers = get_auth_headers_from_tracker(tracker)
 
             # Gọi API lấy món featured (được đánh dấu phổ biến)
             response = requests.get(f"{API_BASE_URL}/menu/items/featured", headers=headers, timeout=5)
@@ -232,10 +225,8 @@ class ActionShowSpecialDishes(Action):
         message = ""
         # Tạm thời trả về featured dishes
         try:
-            headers = auth_helper.get_headers()
-            if not headers.get("Authorization"):
-                dispatcher.utter_message(text="⚠️ Không thể kết nối hệ thống. Vui lòng thử lại sau.")
-                return []
+            # Lấy auth headers từ token trong tracker, fallback to Rasa headers
+            headers = get_auth_headers_from_tracker(tracker)
 
             response = requests.get(f"{API_BASE_URL}/menu/items/featured", headers=headers, timeout=5)
             if response.status_code == 200:
@@ -300,10 +291,8 @@ class ActionAskDishPrice(Action):
             return []
             
         try:
-            headers = auth_helper.get_headers()
-            if not headers.get("Authorization"):
-                dispatcher.utter_message(text="⚠️ Không thể kết nối hệ thống. Vui lòng thử lại sau.")
-                return []
+            # Lấy auth headers từ token trong tracker, fallback to Rasa headers
+            headers = get_auth_headers_from_tracker(tracker)
 
             # Tìm món trong menu
             response = requests.get(f"{API_BASE_URL}/menu/items/search?q={dish_name}", headers=headers, timeout=5)
@@ -374,10 +363,8 @@ class ActionShowBestsellerDishes(Action):
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         message = ""
         try:
-            headers = auth_helper.get_headers()
-            if not headers.get("Authorization"):
-                dispatcher.utter_message(text="⚠️ Không thể kết nối hệ thống. Vui lòng thử lại sau.")
-                return []
+            # Lấy auth headers từ token trong tracker, fallback to Rasa headers
+            headers = get_auth_headers_from_tracker(tracker)
 
             # Gọi API lấy thống kê món bán chạy từ orders
             response = requests.get(f"{API_BASE_URL}/orders/analytics/bestsellers", headers=headers, timeout=5)

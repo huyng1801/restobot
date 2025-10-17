@@ -1,5 +1,4 @@
 import os
-from typing import Optional
 
 # Load .env file if exists
 def load_env_file():

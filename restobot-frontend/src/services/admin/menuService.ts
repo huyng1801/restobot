@@ -1,5 +1,5 @@
 import { apiClient } from '../apiClient';
-import { Category, CategoryCreate, MenuItem, MenuItemCreate, PaginatedMenuResponse } from './types';
+import { Category, CategoryCreate, MenuItem, MenuItemCreate, PaginatedMenuResponse } from '../../types/adminTypes';
 import { PaginatedCategoryResponse } from '../../types';
 
 export const menuService = {
@@ -43,11 +43,6 @@ export const menuService = {
     
   getFeaturedItems: () =>
     apiClient.get<MenuItem[]>('/api/v1/menu/items/featured'),
-    
-  searchMenuItems: (query: string) =>
-    apiClient.get<MenuItem[]>('/api/v1/menu/items/search', {
-      params: { query }
-    }),
     
   getMenuItemById: (itemId: number) =>
     apiClient.get<MenuItem>(`/api/v1/menu/items/${itemId}`),

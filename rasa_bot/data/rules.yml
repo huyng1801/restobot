@@ -148,34 +148,7 @@ rules:
   - intent: modify_specific_field
   - action: action_modify_booking
 
-- rule: Update conversation context after actions
-  steps:
-  - action: action_show_menu
-  - action: action_update_conversation_context
-
-- rule: Update context after booking actions
-  steps:
-  - action: action_book_table
-  - action: action_update_conversation_context
-
-- rule: Update context after order actions  
-  steps:
-  - action: action_add_to_order
-  - action: action_update_conversation_context
-
-- rule: Provide smart suggestions on unclear input
-  condition:
-  - slot_was_set:
-    - conversation_context: null
-  steps:
-  - action: action_smart_suggestion
-
 # ===== AFFIRMATION/DENIAL RULES =====
-- rule: Affirm with greeting
-  steps:
-  - intent: affirm
-  - action: utter_greet
-
 - rule: Deny request
   steps:
   - intent: deny

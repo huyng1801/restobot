@@ -1,5 +1,5 @@
 import { apiClient } from '../apiClient';
-import { Reservation, ReservationCreate, PaginatedReservationResponse } from './types';
+import { Reservation, ReservationCreate, PaginatedReservationResponse } from '../../types/adminTypes';
 
 export const reservationService = {
   getReservations: (skip = 0, limit = 100) =>

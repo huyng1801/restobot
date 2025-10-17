@@ -8,7 +8,7 @@ from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet
 
-from .auth_helper import auth_helper
+from .auth_helper import auth_helper, get_authenticated_user_from_tracker, get_auth_headers_from_tracker
 
 # URL của FastAPI backend
 API_BASE_URL = "http://localhost:8000/api/v1"
@@ -67,18 +67,12 @@ class ActionAddToOrder(Action):
                 dispatcher.utter_message(text="Bạn muốn gọi món gì? Vui lòng cho tôi biết tên món ăn.")
                 return []
             
-            headers = auth_helper.get_headers()
-            if not headers.get("Authorization"):
-                dispatcher.utter_message(text="⚠️ Không thể kết nối hệ thống. Vui lòng thử lại sau.")
-                return []
-
-            # Kiểm tra user có reservation active không
-            user_id = authenticated_user.get('id') or authenticated_user.get('user_id')
-            
-            # Sử dụng auth headers từ user token  
+            # Sử dụng auth headers từ user token, fallback to Rasa headers
             headers = get_auth_headers_from_tracker(tracker)
+            
+            # Kiểm tra user có reservation active không - sử dụng endpoint my reservations
             reservations_response = requests.get(
-                f"{API_BASE_URL}/orders/reservations/?status=CONFIRMED", 
+                f"{API_BASE_URL}/orders/reservations/my", 
                 headers=headers, 
                 timeout=5
             )
@@ -86,45 +80,83 @@ class ActionAddToOrder(Action):
             active_reservation = None
             if reservations_response.status_code == 200:
                 reservations_data = reservations_response.json()
-                reservations = reservations_data.get('items', []) if isinstance(reservations_data, dict) else reservations_data
+                # API trả về list trực tiếp
+                reservations = reservations_data if isinstance(reservations_data, list) else []
                 
-                # Tìm reservation của user hiện tại và còn active
-                from datetime import datetime, date
+                print(f"🔍 Debug: Found {len(reservations)} total reservations for user")
+                
+                # Tìm reservation CONFIRMED của user hiện tại (trong vòng 7 ngày tới)
+                from datetime import datetime, date, timedelta
                 today = date.today()
+                max_future_date = today + timedelta(days=7)  # Cho phép đặt món trước 7 ngày
+                
+                print(f"🔍 Debug: Looking for reservations between {today} and {max_future_date}")
                 
                 for reservation in reservations:
-                    if (reservation.get('user_id') == user_id and 
-                        reservation.get('status') == 'CONFIRMED'):
-                        # Kiểm tra ngày đặt bàn có phải hôm nay không
+                    print(f"🔍 Debug: Checking reservation {reservation.get('id')} with status {reservation.get('status')}")
+                    if reservation.get('status') == 'confirmed' or reservation.get('status') == 'pending':
+                        # Kiểm tra ngày đặt bàn có trong khoảng từ hôm nay đến 7 ngày tới
                         reservation_date = reservation.get('reservation_date')
-                        if reservation_date and str(reservation_date) == str(today):
-                            active_reservation = reservation
-                            break
+                        print(f"🔍 Debug: Reservation date: {reservation_date}")
+                        if reservation_date:
+                            try:
+                                # Parse reservation date
+                                if 'T' in str(reservation_date):
+                                    res_date = datetime.fromisoformat(str(reservation_date).replace('Z', '')).date()
+                                else:
+                                    res_date = datetime.strptime(str(reservation_date), '%Y-%m-%d').date()
+                                
+                                print(f"🔍 Debug: Parsed date: {res_date}")
+                                
+                                # Cho phép gọi món cho reservation từ hôm nay đến 7 ngày tới
+                                if today <= res_date <= max_future_date:
+                                    print(f"✅ Found active reservation for {res_date}")
+                                    active_reservation = reservation
+                                    break
+                                else:
+                                    print(f"❌ Reservation date {res_date} is outside allowed range")
+                            except Exception as e:
+                                print(f"❌ Error parsing reservation date: {e}")
+                                continue
+            else:
+                print(f"❌ API call to /reservations/my failed with status {reservations_response.status_code}")
+                print(f"❌ Response: {reservations_response.text}")
             
             if not active_reservation:
-                dispatcher.utter_message(text="""🍽️ **CẦN ĐẶT BÀN TRƯỚC KHI GỌI MÓN**
+                print(f"❌ No active reservation found for user")
+                dispatcher.utter_message(text="""🍽️ **CẦN ĐẶT BÀN ĐỂ GỌI MÓN**
                 
-Để gọi món, bạn cần đặt bàn trước.
+Không tìm thấy đặt bàn active của bạn.
 
-📋 **Các bước:**
-1. Nói **"đặt bàn"** để đặt chỗ
-2. Chọn thời gian và số người  
-3. Sau khi có bàn, hãy quay lại gọi món
+📋 **Vui lòng:**
+1. Kiểm tra lại bàn đã đặt chưa bị hủy
+2. Đặt bàn mới nếu cần: **"Đặt bàn [số người] người [ngày] [giờ]"**
 
-💡 **Ví dụ:** "Tôi muốn đặt bàn 4 người lúc 7h tối"
+💡 **Ví dụ:** "Đặt bàn 4 người ngày 20/10/2025 lúc 19:00"
 
-🔄 Sau khi đặt bàn xong, bạn có thể nói: "Tôi muốn gọi [tên món]" """)
+🔄 Sau khi đặt bàn xong, bạn có thể gọi món: **"Tôi muốn ăn [tên món]"** """)
                 return []
 
+            print(f"✅ Using reservation ID: {active_reservation.get('id')} for table {active_reservation.get('table_id', 'N/A')}")
+
             # Tìm món trong menu để lấy ID và giá
-            response = requests.get(f"{API_BASE_URL}/menu/items/search?q={dish_name}", headers=headers, timeout=5)
-            
+            response = requests.get(f"{API_BASE_URL}/menu/items?q={dish_name}", headers=headers, timeout=5)
+
             if response.status_code == 200:
-                items = response.json()
+                response_data = response.json()
+                print(f"🔍 Debug: Menu search response: {response_data}")
+                
+                # API trả về dict với key 'items' chứa list các món
+                items = response_data.get('items', []) if isinstance(response_data, dict) else response_data
                 
                 if items:
                     item = items[0]  # Lấy kết quả đầu tiên khớp
+                    print(f"🔍 Debug: Found menu item: {item.get('name')} (ID: {item.get('id')})")
                     table_id = active_reservation.get('table_id')
+                    print("authenticated_user:", authenticated_user)
+                    customer_id = authenticated_user.get('user_id') if authenticated_user else None
+                    
+                    print(f"🔍 Debug: Creating order with customer_id={customer_id}, table_id={table_id}")
                     
                     # Kiểm tra xem đã có order cho bàn này chưa
                     current_order_id = tracker.get_slot("current_order_id")
@@ -135,42 +167,92 @@ class ActionAddToOrder(Action):
                         order_response = requests.get(f"{API_BASE_URL}/orders/orders/{current_order_id}", headers=headers, timeout=5)
                     
                     if not current_order_id or (order_response and order_response.status_code != 200):
-                        # Tạo order mới cho bàn này
+                        # Tạo order mới cho bàn này với tất cả thông tin cần thiết
                         order_data = {
                             "table_id": table_id,
-                            "notes": f"Đơn hàng cho bàn {table_id} - Từ chatbot",
-                            "order_items": []
+                            "customer_id": customer_id,  # Gửi customer_id
+                            "order_items": [
+                                {
+                                    "menu_item_id": item["id"],
+                                    "quantity": quantity,
+                                    "special_instructions": ""
+                                }
+                            ],
+                            "notes": f"Đơn hàng cho bàn {table_id} - Từ chatbot"
                         }
+                        
+                        print(f"🔍 Debug: Sending order data: {order_data}")
+                        print(f"🔍 Debug: Request headers: {headers}")
+                        
+                        # Đảm bảo headers có Content-Type
+                        headers_with_content_type = dict(headers)
+                        if "Content-Type" not in headers_with_content_type:
+                            headers_with_content_type["Content-Type"] = "application/json"
+                        
+                        print(f"🔍 Debug: Final headers: {headers_with_content_type}")
                         
                         create_order_response = requests.post(
                             f"{API_BASE_URL}/orders/orders/",
-                            headers=headers,
-                            json=order_data,
+                            headers=headers_with_content_type,
+                            json=order_data,  # Dùng json parameter - tự động serialize + set Content-Type
                             timeout=10
                         )
                         
-                        if create_order_response.status_code == 201:
+                        print(f"🔍 Debug: Create order response status: {create_order_response.status_code}")
+                        print(f"🔍 Debug: Response headers: {dict(create_order_response.headers)}")
+                        
+                        if 200:
+                            print(f"🔍 Debug: Full response content: {create_order_response.text}")
+                            try:
+                                error_detail = create_order_response.json()
+                                print(f"🔍 Debug: Error detail: {error_detail}")
+                            except Exception as parse_error:
+                                print(f"🔍 Debug: Could not parse error response as JSON: {parse_error}")
+                        
+                        if create_order_response.status_code == 200:
                             order_info = create_order_response.json()
                             current_order_id = order_info.get('id')
+                            print(f"✅ Order created with ID: {current_order_id}")
                         else:
+                            print(f"❌ Create order failed: {create_order_response.text}")
                             dispatcher.utter_message(text="❌ Không thể tạo đơn hàng. Vui lòng thử lại sau.")
                             return []
+                    else:
+                        # Thêm món vào order hiện tại
+                        add_item_data = {
+                            "menu_item_id": item["id"],
+                            "quantity": quantity,
+                            "special_instructions": ""
+                        }
+                        
+                        print(f"🔍 Debug: Adding item to existing order {current_order_id}")
+                        print(f"🔍 Debug: Add item data: {add_item_data}")
+                        print(f"🔍 Debug: Request headers for add item: {headers}")
+                        
+                        add_item_response = requests.post(
+                            f"{API_BASE_URL}/orders/orders/{current_order_id}/items/",
+                            headers=headers,
+                            json=add_item_data,
+                            timeout=10
+                        )
+                        
+                        print(f"🔍 Debug: Add item response status: {add_item_response.status_code}")
+                        print(f"🔍 Debug: Add item response: {add_item_response.text}")
+                        
+                        if add_item_response.status_code not in [200, 201]:
+                            print(f"❌ Add item failed: {add_item_response.text}")
+                            try:
+                                error_detail = add_item_response.json()
+                                print(f"🔍 Debug: Add item error detail: {error_detail}")
+                            except Exception as parse_error:
+                                print(f"🔍 Debug: Could not parse add item error response: {parse_error}")
+                            dispatcher.utter_message(text="❌ Không thể thêm món vào đơn hàng. Vui lòng thử lại.")
+                            return []
+                        
+                        print(f"✅ Item added successfully to order {current_order_id}")
                     
-                    # Thêm món vào order
-                    add_item_data = {
-                        "menu_item_id": item["id"],
-                        "quantity": quantity,
-                        "special_instructions": ""
-                    }
-                    
-                    add_item_response = requests.post(
-                        f"{API_BASE_URL}/orders/orders/{current_order_id}/items/",
-                        headers=headers,
-                        json=add_item_data,
-                        timeout=10
-                    )
-                    
-                    if add_item_response.status_code in [200, 201]:
+                    # Hiển thị thông báo thêm món thành công
+                    if current_order_id:
                         price_formatted = f"{item['price']:,.0f}đ"
                         total_formatted = f"{item['price'] * quantity:,.0f}đ"
                         table_number = active_reservation.get('table', {}).get('number', table_id)
@@ -303,20 +385,15 @@ class ActionViewCurrentOrder(Action):
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         
         # Extract user info from metadata
-        user_info = None
-        latest_message = tracker.latest_message
-        if latest_message and 'metadata' in latest_message and latest_message['metadata']:
-            user_info = latest_message['metadata'].get('user_info', {})
+        authenticated_user = get_authenticated_user_from_tracker(tracker)
         
-        if not user_info or not user_info.get('user_id'):
+        if not authenticated_user:
             dispatcher.utter_message(text="🔐 Vui lòng đăng nhập để xem đơn hàng của bạn.")
             return []
         
         try:
-            headers = auth_helper.get_headers()
-            if not headers.get("Authorization"):
-                dispatcher.utter_message(text="⚠️ Không thể kết nối hệ thống. Vui lòng thử lại sau.")
-                return []
+            # Lấy auth headers từ token trong tracker, fallback to Rasa headers
+            headers = get_auth_headers_from_tracker(tracker)
             
             # Lấy order hiện tại từ slot hoặc tìm order active
             current_order_id = tracker.get_slot("current_order_id")
@@ -412,10 +489,8 @@ class ActionConfirmOrder(Action):
             return []
 
         try:
-            headers = auth_helper.get_headers()
-            if not headers.get("Authorization"):
-                dispatcher.utter_message(text="⚠️ Không thể kết nối hệ thống. Vui lòng thử lại sau.")
-                return []
+            # Lấy auth headers từ token trong tracker, fallback to Rasa headers
+            headers = get_auth_headers_from_tracker(tracker)
 
             # Lấy thông tin đơn hàng hiện tại
             order_response = requests.get(f"{API_BASE_URL}/orders/orders/{current_order_id}", headers=headers, timeout=5)
@@ -515,10 +590,8 @@ Bạn không có đơn hàng nào đang chờ xử lý.
             return []
         
         try:
-            headers = auth_helper.get_headers()
-            if not headers.get("Authorization"):
-                dispatcher.utter_message(text="⚠️ Không thể kết nối hệ thống. Vui lòng thử lại sau.")
-                return []
+            # Lấy auth headers từ token trong tracker, fallback to Rasa headers
+            headers = get_auth_headers_from_tracker(tracker)
 
             # Lấy thông tin đơn hàng hiện tại
             response = requests.get(f"{API_BASE_URL}/orders/orders/{current_order_id}", headers=headers, timeout=5)
@@ -594,10 +667,8 @@ class ActionConfirmCancelOrder(Action):
             return []
         
         try:
-            headers = auth_helper.get_headers()
-            if not headers.get("Authorization"):
-                dispatcher.utter_message(text="⚠️ Không thể kết nối hệ thống. Vui lòng thử lại sau.")
-                return []
+            # Lấy auth headers từ token trong tracker, fallback to Rasa headers
+            headers = get_auth_headers_from_tracker(tracker)
 
             # Cập nhật trạng thái đơn hàng thành CANCELLED
             update_data = {"status": "CANCELLED"}

@@ -6,10 +6,13 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  loading: boolean;
+  error: string | null;
+  login: (username: string, password: string) => Promise<any>;
   logout: () => Promise<void>;
   register: (userData: any) => Promise<void>;
   checkAuth: () => Promise<void>;
+  updateUser: (userData: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,8 +24,10 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const isAuthenticated = !!user && authService.isAuthenticated();
+  const loading = isLoading;
 
   const checkAuth = async () => {
     try {
@@ -66,10 +71,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (username: string, password: string) => {
     try {
       setIsLoading(true);
+      setError(null);
       const response = await authService.login({ username, password });
       setUser(response.user);
-    } catch (error) {
-      throw error;
+      return response;
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || 'Login failed';
+      setError(errorMessage);
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -90,11 +99,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (userData: any) => {
     try {
       setIsLoading(true);
+      setError(null);
       await authService.register(userData);
       // Sau khi register thành công, có thể tự động login
       await login(userData.username, userData.password);
-    } catch (error) {
-      throw error;
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || 'Registration failed';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateUser = async (userData: Partial<User>) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      // Update user in state directly or via API if available
+      if (user) {
+        const updatedUser = { ...user, ...userData };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+      }
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || 'Update failed';
+      setError(errorMessage);
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -108,10 +139,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     isAuthenticated,
     isLoading,
+    loading,
+    error,
     login,
     logout,
     register,
     checkAuth,
+    updateUser,
   };
 
   return (

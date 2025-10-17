@@ -8,9 +8,8 @@ from app.core.database import get_db
 from app.core.security import create_access_token
 from app.core.config import settings
 from app.crud.user import user as user_crud
-from app.schemas.user import Token, UserCreate, User
+from app.schemas.user import Token, UserCreate
 from app.models.user import UserRole
-from app.api.deps import get_current_manager_user
 
 router = APIRouter()
 
@@ -89,50 +88,3 @@ def login(
         "token_type": "bearer",
         "user": user,
     }
-
-
-@router.post("/register-staff", response_model=User)
-def register_staff(
-    *,
-    db: Session = Depends(get_db),
-    user_in: UserCreate,
-    current_user: User = Depends(get_current_manager_user),
-) -> Any:
-    """
-    Register new staff member (requires manager+ permissions)
-    """
-    # Only managers and admins can create staff accounts
-    if current_user.role not in [UserRole.manager, UserRole.admin]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
-        )
-    
-    # Check if user already exists
-    existing_user = user_crud.get_by_email(db, email=user_in.email)
-    if existing_user:
-        raise HTTPException(
-            status_code=400,
-            detail="A user with this email already exists"
-        )
-    
-    existing_user = user_crud.get_by_username(db, username=user_in.username)
-    if existing_user:
-        raise HTTPException(
-            status_code=400,
-            detail="A user with this username already exists"
-        )
-    
-    # Ensure the role is appropriate
-    if user_in.role not in [UserRole.staff, UserRole.manager]:
-        user_in.role = UserRole.staff
-    
-    # Only admin can create manager accounts
-    if user_in.role == UserRole.manager and current_user.role != UserRole.admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only admin can create manager accounts"
-        )
-    
-    user = user_crud.create(db, obj_in=user_in)
-    return user

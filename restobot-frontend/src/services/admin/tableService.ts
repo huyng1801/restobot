@@ -1,5 +1,5 @@
 import { apiClient } from '../apiClient';
-import { Table, TableCreate, TableStatus, TablesResponse } from './types';
+import { Table, TableCreate, TableStatus, TablesResponse } from '../../types/adminTypes';
 
 export const tableService = {
   getTables: async (skip = 0, limit = 100, status?: TableStatus, search?: string) => {

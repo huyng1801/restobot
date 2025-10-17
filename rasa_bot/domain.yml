@@ -200,7 +200,7 @@ slots:
     - type: custom
     
   item_to_modify:
-    type: any
+    type: text
     initial_value: null
     influence_conversation: true
     mappings:
@@ -327,6 +327,7 @@ actions:
 
   # Order actions
   - action_add_to_order
+  - action_view_current_order
   - action_show_current_order
   - action_confirm_order
   - action_confirm_order_final

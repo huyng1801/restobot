@@ -21,7 +21,7 @@ import {
 import AdminLayout from '../../components/admin/AdminLayout';
 import { useNavigate } from 'react-router-dom';
 import { orderService } from '../../services/admin';
-import { DashboardStats } from '../../services/admin/types';
+import { DashboardStats } from '../../types/adminTypes';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();

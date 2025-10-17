@@ -10,7 +10,7 @@ from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet
 
-from .auth_helper import auth_helper
+from .auth_helper import auth_helper, get_authenticated_user_from_tracker, get_auth_headers_from_tracker
 
 # URL của FastAPI backend
 API_BASE_URL = "http://localhost:8000/api/v1"
@@ -57,10 +57,8 @@ class ActionShowAvailableTables(Action):
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         message = ""
         try:
-            headers = auth_helper.get_headers()
-            if not headers.get("Authorization"):
-                dispatcher.utter_message(text="⚠️ Không thể kết nối hệ thống. Vui lòng thử lại sau.")
-                return []
+            # Lấy auth headers từ token trong tracker, fallback to Rasa headers
+            headers = get_auth_headers_from_tracker(tracker)
 
             number_of_people = tracker.get_slot("number_of_people")
             
@@ -145,9 +143,8 @@ class ActionBookTable(Action):
             return []
         
         # Sử dụng thông tin của user đã xác thực
-        user_id = authenticated_user.get('id') or authenticated_user.get('user_id')
+        user_id = authenticated_user.get('user_id') or authenticated_user.get('user_id')
         username = authenticated_user.get('username', 'User')
-        user_email = authenticated_user.get('email', '')
         user_full_name = authenticated_user.get('full_name', username)
         
         print(f"✅ Booking for authenticated user: {username} (ID: {user_id})")
@@ -388,10 +385,8 @@ Có lỗi khi xử lý thông tin đặt bàn: {str(e)}
                         
         # Attempt to book the table via API
         try:
-            headers = auth_helper.get_headers()
-            if not headers.get("Authorization"):
-                dispatcher.utter_message(text="⚠️ Không thể kết nối hệ thống đặt bàn. Vui lòng thử lại sau.")
-                return []
+            # Lấy auth headers từ token trong tracker, fallback to Rasa headers
+            headers = get_auth_headers_from_tracker(tracker)
 
             # Chuẩn bị datetime cho reservation_date theo API mới
             try:
@@ -545,16 +540,12 @@ class ActionCancelReservation(Action):
             return []
         
         try:
-            # Sử dụng auth headers từ user token
+            # Sử dụng auth headers từ user token, fallback to Rasa headers
             headers = get_auth_headers_from_tracker(tracker)
-            if not headers.get("Authorization"):
-                dispatcher.utter_message(text="⚠️ Không thể kết nối hệ thống. Vui lòng thử lại sau.")
-                return []
 
-            # Tìm reservation active của user
-            user_id = authenticated_user.get('id') or authenticated_user.get('user_id')
+            # Tìm reservation active của user - sử dụng endpoint my reservations
             reservations_response = requests.get(
-                f"{API_BASE_URL}/orders/reservations/?status=CONFIRMED", 
+                f"{API_BASE_URL}/orders/reservations/my", 
                 headers=headers, 
                 timeout=5
             )
@@ -562,28 +553,50 @@ class ActionCancelReservation(Action):
             active_reservations = []
             if reservations_response.status_code == 200:
                 reservations_data = reservations_response.json()
-                reservations = reservations_data.get('items', []) if isinstance(reservations_data, dict) else reservations_data
+                # API trả về list trực tiếp, không cần get 'items'
+                reservations = reservations_data if isinstance(reservations_data, list) else []
+                
+                print(f"🔍 Debug: Found {len(reservations)} total reservations")
                 
                 from datetime import datetime, date
                 today = date.today()
+                print(f"🔍 Debug: Today is {today}")
                 
                 for reservation in reservations:
-                    if (reservation.get('user_id') == user_id or reservation.get('customer_id') == user_id) and reservation.get('status') == 'CONFIRMED':
-                        # Lấy các reservation từ hôm nay trở đi
+                    print(f"🔍 Debug: Checking reservation {reservation.get('id')} with status {reservation.get('status')}")
+                    # Lọc chỉ những reservation confirmed từ hôm nay trở đi
+                    if reservation.get('status') == 'confirmed' or reservation.get('status') == 'pending':
                         reservation_date = reservation.get('reservation_date')
+                        print(f"🔍 Debug: Reservation date: {reservation_date}")
                         if reservation_date:
                             try:
                                 # Parse datetime string
                                 if 'T' in str(reservation_date):
                                     res_datetime = datetime.fromisoformat(str(reservation_date).replace('Z', ''))
-                                    res_date = res_datetime.date()
                                 else:
-                                    res_date = datetime.strptime(str(reservation_date), '%Y-%m-%d').date()
+                                    res_datetime = datetime.strptime(str(reservation_date), '%Y-%m-%d')
                                 
+                                res_date = res_datetime.date()
+                                
+                                # Lấy reservation từ hôm nay trở đi
                                 if res_date >= today:
+                                    print(f"🔍 Debug: Reservation {reservation.get('id')} date {res_date} >= {today}: Adding to active list")
                                     active_reservations.append(reservation)
-                            except:
-                                continue
+                                else:
+                                    print(f"🔍 Debug: Reservation {reservation.get('id')} date {res_date} < {today}: Skipping (past date)")
+                                    
+                            except Exception as date_error:
+                                print(f"❌ Error parsing reservation date {reservation_date}: {date_error}")
+                                # Nếu không parse được date, vẫn thêm vào list để an toàn
+                                print(f"🔍 Debug: Adding reservation {reservation.get('id')} despite date parse error")
+                                active_reservations.append(reservation)
+                    else:
+                        print(f"🔍 Debug: Skipping reservation {reservation.get('id')} with status {reservation.get('status')}")
+            else:
+                print(f"❌ API call failed with status {reservations_response.status_code}")
+                print(f"❌ Response: {reservations_response.text}")
+            
+            print(f"🔍 Debug: Final active_reservations count: {len(active_reservations)}")
             
             if not active_reservations:
                 dispatcher.utter_message(text="""ℹ️ **KHÔNG TÌM THẤY ĐẶT BÀN ACTIVE**
@@ -684,10 +697,8 @@ class ActionConfirmCancelReservation(Action):
             return []
 
         try:
-            headers = auth_helper.get_headers()
-            if not headers.get("Authorization"):
-                dispatcher.utter_message(text="⚠️ Không thể kết nối hệ thống. Vui lòng thử lại sau.")
-                return []
+            # Lấy auth headers từ token trong tracker, fallback to Rasa headers
+            headers = get_auth_headers_from_tracker(tracker)
 
             # Cập nhật status thành cancelled  
             cancel_data = {"status": "cancelled"}

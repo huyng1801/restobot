@@ -133,7 +133,7 @@ export interface Table {
   capacity: number;
   location?: string;
   is_active: boolean;
-  current_status: 'available' | 'occupied' | 'reserved' | 'maintenance';
+  current_status: 'available' | 'occupied' | 'reserved';
 }
 
 export interface Reservation {

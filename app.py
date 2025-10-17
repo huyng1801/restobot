@@ -133,7 +133,7 @@ class RestoBot:
             print("   • /api/v1/tables/ - Table management")
             print("   • /api/v1/orders/ - Order management")
             
-            uvicorn.run(app, host="0.0.0.0", port=8000, log_level="warning")
+            uvicorn.run(app, host="0.0.0.0", port=8000, log_level="debug")
             
         except KeyboardInterrupt:
             print("⏹️ FastAPI đã dừng")
@@ -228,17 +228,7 @@ class RestoBot:
                     # Test menu API
                     menu_response = requests.get("http://localhost:8000/api/v1/menu/categories", timeout=5)
                     if menu_response.status_code == 200:
-                        print("✅ Menu API: Ready")
-                    
-                    # Test users API  
-                    users_response = requests.get("http://localhost:8000/api/v1/users/", timeout=5)
-                    if users_response.status_code in [200, 401]:  # 401 is expected without auth
-                        print("✅ Users API: Ready")
-                        
-                    # Test tables API
-                    tables_response = requests.get("http://localhost:8000/api/v1/tables/", timeout=5)
-                    if tables_response.status_code in [200, 401]:
-                        print("✅ Tables API: Ready")
+                        print("✅ Menu API: Ready")      
                         
                 except Exception as api_e:
                     print(f"⚠️ Some API endpoints may need authentication: {api_e}")

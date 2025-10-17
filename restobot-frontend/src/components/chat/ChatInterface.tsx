@@ -265,6 +265,38 @@ Bạn có thể sử dụng các nút bên dưới hoặc nhập trực tiếp!`
     />
   );
 
+  const AuthStatus = () => (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      {user ? (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.light' }}>
+            {user.username?.charAt(0).toUpperCase()}
+          </Avatar>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: 'white' }}>
+              {user.full_name || user.username}
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+              {user.email}
+            </Typography>
+          </Box>
+        </Box>
+      ) : (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <LoginIcon sx={{ color: '#ff9800' }} />
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: 'white' }}>
+              Chưa đăng nhập
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+              Vui lòng đăng nhập để tiếp tục
+            </Typography>
+          </Box>
+        </Box>
+      )}
+    </Box>
+  );
+
   return (
     <Box
       sx={{
@@ -281,9 +313,39 @@ Bạn có thể sử dụng các nút bên dưới hoặc nhập trực tiếp!`
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             RestoBot - Trợ lý nhà hàng
           </Typography>
-          <ConnectionIndicator />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+            <ConnectionIndicator />
+            <Divider orientation="vertical" flexItem sx={{ bgcolor: 'rgba(255,255,255,0.2)' }} />
+            <AuthStatus />
+          </Box>
         </Toolbar>
       </AppBar>
+
+      {/* Auth Alert */}
+      {!user && (
+        <Alert severity="warning" sx={{ mx: 2, mt: 2, mb: 0 }}>
+          <AlertTitle>🔒 Bạn chưa đăng nhập</AlertTitle>
+          Vui lòng{' '}
+          <Button 
+            color="warning" 
+            size="small" 
+            onClick={() => navigate('/login')}
+            sx={{ textTransform: 'none' }}
+          >
+            đăng nhập
+          </Button>
+          {' '}hoặc{' '}
+          <Button 
+            color="warning" 
+            size="small" 
+            onClick={() => navigate('/register')}
+            sx={{ textTransform: 'none' }}
+          >
+            đăng ký
+          </Button>
+          {' '}để sử dụng đầy đủ các tính năng.
+        </Alert>
+      )}
 
       {/* Messages Area */}
       <Box

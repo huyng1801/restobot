@@ -1,11 +1,10 @@
 from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.crud.user import user as user_crud
-from app.schemas.user import User, UserCreate, UserUpdate, ChangePasswordRequest
-from app.core.security import verify_password
+from app.schemas.user import User, UserUpdate
 from app.api.deps import get_current_user, get_current_manager_user, get_current_admin_user
 from app.models.user import UserRole
 
@@ -38,30 +37,6 @@ def update_user_me(
     
     user = user_crud.update(db, db_obj=current_user, obj_in=user_in)
     return user
-
-
-@router.post("/me/change-password")
-def change_password_me(
-    *,
-    db: Session = Depends(get_db),
-    password_in: ChangePasswordRequest,
-    current_user: User = Depends(get_current_user),
-) -> Any:
-    """
-    Change current user's password.
-    """
-    # Verify current password
-    if not verify_password(password_in.current_password, current_user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Current password is incorrect"
-        )
-    
-    # Update password
-    user_crud.update_password(db, current_user, password_in.new_password)
-    
-    return {"message": "Password changed successfully"}
-
 
 @router.get("/", response_model=List[User])
 def read_users(

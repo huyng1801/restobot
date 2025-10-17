@@ -1,5 +1,5 @@
 // Export all types
-export * from './types';
+export * from '../../types/adminTypes';
 
 // Export all services
 export { authService } from './authService';

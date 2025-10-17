@@ -28,7 +28,8 @@ import {
 } from '@mui/material';
 import { Visibility as ViewIcon, Cancel as CancelIcon } from '@mui/icons-material';
 import AdminLayout from '../../../components/admin/AdminLayout';
-import { reservationService, Reservation, ReservationStatus } from '../../../services/admin';
+import { reservationService } from '../../../services/admin/reservationService';
+import { Reservation } from '../../../types/adminTypes';
 
 const AdminReservations: React.FC = () => {
   const [reservations, setReservations] = useState<Reservation[]>([]);

@@ -7,7 +7,8 @@ export interface User {
   role: 'admin' | 'staff' | 'customer';
   is_active: boolean;
   created_at: string;
-  phone_number?: string;
+  updated_at?: string;
+  phone?: string;
 }
 
 export interface LoginRequest {
@@ -26,7 +27,19 @@ export interface RegisterRequest {
   email: string;
   password: string;
   full_name: string;
-  phone_number?: string;
+  phone?: string;
+}
+
+export interface UpdateProfileRequest {
+  email?: string;
+  username?: string;
+  full_name?: string;
+  phone?: string;
+}
+
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
 }
 
 // Menu & Dish Types
@@ -51,6 +64,13 @@ export interface CategoryCreate {
   name: string;
   description?: string;
   is_active?: boolean;
+}
+
+export interface PaginatedCategoryResponse {
+  items: Category[];
+  total: number;
+  skip: number;
+  limit: number;
 }
 
 export interface Dish {

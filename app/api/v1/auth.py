@@ -15,14 +15,14 @@ from app.api.deps import get_current_manager_user
 router = APIRouter()
 
 
-@router.post("/register", response_model=User)
+@router.post("/register", response_model=Token)
 def register(
     *,
     db: Session = Depends(get_db),
     user_in: UserCreate,
 ) -> Any:
     """
-    Register new user
+    Register new user (customer role only)
     """
     # Check if user already exists
     existing_user = user_crud.get_by_email(db, email=user_in.email)
@@ -39,8 +39,22 @@ def register(
             detail="A user with this username already exists"
         )
     
+    # Ensure only customer role can be created through public registration
+    user_in.role = UserRole.customer
+    
     user = user_crud.create(db, obj_in=user_in)
-    return user
+    
+    # Create access token for immediate login
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        subject=user.username, expires_delta=access_token_expires
+    )
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": user,
+    }
 
 
 @router.post("/login", response_model=Token)
@@ -73,6 +87,7 @@ def login(
     return {
         "access_token": access_token,
         "token_type": "bearer",
+        "user": user,
     }
 
 

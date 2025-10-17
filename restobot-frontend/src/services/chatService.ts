@@ -24,11 +24,23 @@ export interface ChatResponse {
 
 export class ChatService {
   private rasaUrl = process.env.REACT_APP_RASA_URL || 'http://localhost:5005';
-  private fastApiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
   private sessionId = 'user_' + Math.random().toString(36).substr(2, 9);
 
-  async sendMessage(message: string): Promise<ChatResponse> {
+  async sendMessage(message: string, userInfo?: any): Promise<ChatResponse> {
     try {
+      // Lấy token từ localStorage
+      const token = localStorage.getItem('access_token');
+      const user = localStorage.getItem('user');
+      let parsedUser = null;
+      
+      if (user) {
+        try {
+          parsedUser = JSON.parse(user);
+        } catch (e) {
+          console.warn('Could not parse user info:', e);
+        }
+      }
+
       // Kiểm tra kết nối với Rasa trước
       const isRasaConnected = await this.checkRasaConnection();
       
@@ -37,7 +49,9 @@ export class ChatService {
         try {
           const data = await api.post<ChatResponse>(endpoints.chat.message, {
             message,
-            sender: this.sessionId
+            sender: this.sessionId,
+            user_info: userInfo || parsedUser,
+            auth_token: token
           });
           
           return {
@@ -48,16 +62,25 @@ export class ChatService {
         }
       }
 
-      // Gửi tin nhắn đến Rasa webhook
+      // Gửi tin nhắn đến Rasa webhook với thông tin user và auth token
+      const requestBody = {
+        sender: this.sessionId,
+        message: message,
+        metadata: { 
+          user_info: userInfo || parsedUser,
+          auth_token: token,
+          timestamp: new Date().toISOString()
+        }
+      };
+
+      console.log('Sending to Rasa:', requestBody);
+
       const response = await fetch(`${this.rasaUrl}/webhooks/rest/webhook`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          sender: this.sessionId,
-          message: message
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
@@ -126,9 +149,9 @@ export class ChatService {
     if (rasaOk && fastApiOk) {
       message = '✅ Đã kết nối đầy đủ FastAPI + Rasa';
     } else if (fastApiOk) {
-      message = '⚠️ Chỉ FastAPI hoạt động. Vui lòng khởi động Rasa: python start_rasa.py';
+      message = '⚠️ Chỉ FastAPI hoạt động. Vui lòng đợi Rasa khởi động.';
     } else if (rasaOk) {
-      message = '⚠️ Chỉ Rasa hoạt động. Vui lòng khởi động FastAPI: python start_fastapi.py';
+      message = '⚠️ Chỉ Rasa hoạt động. Vui lòng khởi động FastAPI';
     } else {
       message = '❌ Không kết nối được. Vui lòng khởi động servers.';
     }

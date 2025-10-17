@@ -34,7 +34,13 @@ class ActionShowMenu(Action):
             categories_response = requests.get(f"{API_BASE_URL}/menu/categories/", headers=headers, timeout=5)
 
             if categories_response.status_code == 200:
-                categories = categories_response.json()
+                categories_data = categories_response.json()
+                # Xử lý response format từ API (có thể là paginated)
+                if isinstance(categories_data, dict) and 'items' in categories_data:
+                    categories = categories_data['items']
+                else:
+                    categories = categories_data
+                    
                 message = "🍽️ **THỰC ĐƠN NHÀ HÀNG** 🍽️\n\n"
 
                 for category in categories:
@@ -49,7 +55,13 @@ class ActionShowMenu(Action):
                         timeout=5
                     )
                     if items_response.status_code == 200:
-                        items = items_response.json()
+                        items_data = items_response.json()
+                        # Xử lý response format từ API (có thể là paginated)
+                        if isinstance(items_data, dict) and 'items' in items_data:
+                            items = items_data['items']
+                        else:
+                            items = items_data
+                        
                         for item in items[:3]:  # Chỉ hiển thị 3 món đầu mỗi danh mục
                             price_formatted = f"{item['price']:,.0f}đ" if item.get('price') else "Liên hệ"
                             message += f"   • {item['name']} - {price_formatted}\n"
@@ -257,6 +269,192 @@ class ActionShowSpecialDishes(Action):
         except Exception as e:
             message = f"❌ Có lỗi bất ngờ xảy ra khi tải món đặc biệt."
             print(f"Unexpected error in ActionShowSpecialDishes: {e}")
+        
+        dispatcher.utter_message(text=message)
+        return []
+
+
+class ActionAskDishPrice(Action):
+    """Action để hỏi giá món ăn"""
+
+    def name(self) -> Text:
+        return "action_ask_dish_price"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        message = ""
+        dish_name = None
+        
+        # Lấy tên món từ entity hoặc slot
+        for entity in tracker.latest_message.get('entities', []):
+            if entity['entity'] == 'dish_name':
+                dish_name = entity['value']
+                break
+        
+        if not dish_name:
+            dish_name = tracker.get_slot("last_mentioned_dish")
+            
+        if not dish_name:
+            dispatcher.utter_message(text="Bạn muốn hỏi giá món nào? Vui lòng cho tôi biết tên món ăn.")
+            return []
+            
+        try:
+            headers = auth_helper.get_headers()
+            if not headers.get("Authorization"):
+                dispatcher.utter_message(text="⚠️ Không thể kết nối hệ thống. Vui lòng thử lại sau.")
+                return []
+
+            # Tìm món trong menu
+            response = requests.get(f"{API_BASE_URL}/menu/items/search?q={dish_name}", headers=headers, timeout=5)
+            
+            if response.status_code == 200:
+                items = response.json()
+                
+                if items:
+                    if len(items) == 1:
+                        # Chỉ có 1 món khớp
+                        item = items[0]
+                        price_formatted = f"{item['price']:,.0f}đ" if item.get('price') else "Liên hệ"
+                        
+                        message = f"💰 **Giá {item['name']}: {price_formatted}**"
+                        
+                        if item.get('preparation_time'):
+                            message += f"\n⏱️ Thời gian chuẩn bị: {item['preparation_time']} phút"
+                        
+                        message += f"\n\n💡 Bạn có muốn gọi món này không?"
+                        
+                        return [SlotSet("last_mentioned_dish", item['name'])]
+                        
+                    else:
+                        # Nhiều món khớp - hiển thị danh sách
+                        message = f"💰 **Giá các món có tên '{dish_name}':**\n\n"
+                        
+                        for item in items[:5]:  # Chỉ hiển thị 5 món đầu
+                            price_formatted = f"{item['price']:,.0f}đ" if item.get('price') else "Liên hệ"
+                            message += f"• **{item['name']}** - {price_formatted}\n"
+                            if item.get('category', {}).get('name'):
+                                message += f"  _{item['category']['name']}_\n"
+                        
+                        if len(items) > 5:
+                            message += f"\n... và {len(items) - 5} món khác"
+                        
+                        message += "\n\n💡 **Để biết chi tiết:** Nói 'chi tiết [tên món cụ thể]'"
+                else:
+                    message = f"❌ Không tìm thấy món '{dish_name}' trong thực đơn.\n\n"
+                    message += "💡 **Gợi ý:**\n"
+                    message += "• Nói 'xem thực đơn' để xem tất cả món\n"
+                    message += "• Nói 'món phổ biến' để xem món được yêu thích\n"
+                    message += "• Nói 'gợi ý món ăn' để được tư vấn"
+                    
+            else:
+                message = "❌ Không thể tra cứu giá món. Vui lòng thử lại sau."
+                
+        except requests.exceptions.Timeout:
+            message = "⏱️ Kết nối chậm. Vui lòng thử lại sau."
+        except requests.exceptions.RequestException as e:
+            message = f"❌ Có lỗi xảy ra khi tra cứu giá món."
+            print(f"Error in ActionAskDishPrice: {e}")
+        except Exception as e:
+            message = f"❌ Có lỗi bất ngờ xảy ra khi tra cứu giá món."
+            print(f"Unexpected error in ActionAskDishPrice: {e}")
+        
+        dispatcher.utter_message(text=message)
+        return []
+
+
+class ActionShowBestsellerDishes(Action):
+    """Action để hiển thị món bán chạy nhất dựa vào order_items"""
+
+    def name(self) -> Text:
+        return "action_show_bestseller_dishes"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        message = ""
+        try:
+            headers = auth_helper.get_headers()
+            if not headers.get("Authorization"):
+                dispatcher.utter_message(text="⚠️ Không thể kết nối hệ thống. Vui lòng thử lại sau.")
+                return []
+
+            # Gọi API lấy thống kê món bán chạy từ orders
+            response = requests.get(f"{API_BASE_URL}/orders/analytics/bestsellers", headers=headers, timeout=5)
+            
+            if response.status_code == 200:
+                bestsellers = response.json()
+                
+                if bestsellers:
+                    message = "🔥 **MÓN BÁN CHẠY NHẤT**\n\n"
+                    
+                    for idx, item in enumerate(bestsellers[:5], 1):  # Top 5
+                        # Lấy thông tin chi tiết món ăn
+                        item_response = requests.get(f"{API_BASE_URL}/menu/items/{item['menu_item_id']}", headers=headers, timeout=5)
+                        if item_response.status_code == 200:
+                            item_detail = item_response.json()
+                            price_formatted = f"{item_detail['price']:,.0f}đ" if item_detail.get('price') else "Liên hệ"
+                            total_sold = item.get('total_quantity', 0)
+                            
+                            message += f"{idx}. 🏆 **{item_detail['name']}** - {price_formatted}\n"
+                            if item_detail.get('description'):
+                                message += f"   _{item_detail['description'][:50]}{'...' if len(item_detail.get('description', '')) > 50 else ''}_\n"
+                            message += f"   📊 Đã bán: {total_sold} suất\n\n"
+                    
+                    message += "💡 Đây là những món được khách hàng yêu thích nhất!"
+                    
+                else:
+                    # Fallback về featured dishes nếu chưa có dữ liệu bán hàng
+                    featured_response = requests.get(f"{API_BASE_URL}/menu/items/featured", headers=headers, timeout=5)
+                    if featured_response.status_code == 200:
+                        featured_items = featured_response.json()
+                        
+                        if featured_items:
+                            message = "🌟 **MÓN ĐƯỢC ĐỀ XUẤT** (Chưa có dữ liệu bán hàng)\n\n"
+                            
+                            for item in featured_items[:3]:
+                                price_formatted = f"{item['price']:,.0f}đ" if item.get('price') else "Liên hệ"
+                                message += f"⭐ **{item['name']}** - {price_formatted}\n"
+                                if item['description']:
+                                    message += f"   _{item['description']}_\n"
+                                message += "\n"
+                                
+                            message += "💡 Đây là những món được đầu bếp khuyến nghị!"
+                        else:
+                            message = "Hiện tại chúng tôi đang thu thập dữ liệu về món bán chạy. Bạn có thể xem thực đơn hoặc hỏi gợi ý món ăn."
+                    else:
+                        message = "Hiện tại chúng tôi đang thu thập dữ liệu về món bán chạy. Bạn có thể xem thực đơn hoặc hỏi gợi ý món ăn."
+                        
+            else:
+                # Fallback về featured dishes
+                featured_response = requests.get(f"{API_BASE_URL}/menu/items/featured", headers=headers, timeout=5)
+                if featured_response.status_code == 200:
+                    featured_items = featured_response.json()
+                    
+                    if featured_items:
+                        message = "🌟 **MÓN ĐƯỢC ĐỀ XUẤT**\n\n"
+                        
+                        for item in featured_items[:3]:
+                            price_formatted = f"{item['price']:,.0f}đ" if item.get('price') else "Liên hệ"
+                            message += f"⭐ **{item['name']}** - {price_formatted}\n"
+                            if item['description']:
+                                message += f"   _{item['description']}_\n"
+                            message += "\n"
+                            
+                        message += "💡 Đây là những món được đầu bếp khuyến nghị!"
+                    else:
+                        message = "Hiện tại không thể tải dữ liệu món bán chạy. Bạn có thể xem thực đơn hoặc hỏi gợi ý món ăn."
+                else:
+                    message = "Hiện tại không thể tải dữ liệu món bán chạy. Bạn có thể xem thực đơn hoặc hỏi gợi ý món ăn."
+                
+        except requests.exceptions.Timeout:
+            message = "⏱️ Kết nối chậm. Vui lòng thử lại sau."
+        except requests.exceptions.RequestException as e:
+            message = f"❌ Có lỗi xảy ra khi tải món bán chạy."
+            print(f"Error in ActionShowBestsellerDishes: {e}")
+        except Exception as e:
+            message = f"❌ Có lỗi bất ngờ xảy ra khi tải món bán chạy."
+            print(f"Unexpected error in ActionShowBestsellerDishes: {e}")
         
         dispatcher.utter_message(text=message)
         return []

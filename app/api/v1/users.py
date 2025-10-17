@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.crud.user import user as user_crud
-from app.schemas.user import User, UserCreate, UserUpdate
+from app.schemas.user import User, UserCreate, UserUpdate, ChangePasswordRequest
+from app.core.security import verify_password
 from app.api.deps import get_current_user, get_current_manager_user, get_current_admin_user
 from app.models.user import UserRole
 
@@ -37,6 +38,29 @@ def update_user_me(
     
     user = user_crud.update(db, db_obj=current_user, obj_in=user_in)
     return user
+
+
+@router.post("/me/change-password")
+def change_password_me(
+    *,
+    db: Session = Depends(get_db),
+    password_in: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    """
+    Change current user's password.
+    """
+    # Verify current password
+    if not verify_password(password_in.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect"
+        )
+    
+    # Update password
+    user_crud.update_password(db, current_user, password_in.new_password)
+    
+    return {"message": "Password changed successfully"}
 
 
 @router.get("/", response_model=List[User])
@@ -137,3 +161,42 @@ def get_staff_users(
     """
     staff_users = user_crud.get_by_role(db, role=UserRole.staff.value)
     return staff_users
+
+
+@router.post("/me/change-password")
+def change_password(
+    *,
+    db: Session = Depends(get_db),
+    password_in: dict,
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    """
+    Change current user's password.
+    """
+    current_password = password_in.get("current_password")
+    new_password = password_in.get("new_password")
+    
+    if not current_password or not new_password:
+        raise HTTPException(
+            status_code=400,
+            detail="Both current_password and new_password are required"
+        )
+    
+    # Verify current password
+    if not user_crud.authenticate(db, username=current_user.username, password=current_password):
+        raise HTTPException(
+            status_code=400,
+            detail="Incorrect current password"
+        )
+    
+    # Validate new password length
+    if len(new_password) < 6:
+        raise HTTPException(
+            status_code=400,
+            detail="New password must be at least 6 characters long"
+        )
+    
+    # Update password
+    user_crud.update_password(db, db_obj=current_user, new_password=new_password)
+    
+    return {"message": "Password changed successfully"}

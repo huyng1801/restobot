@@ -73,5 +73,14 @@ class CRUDUser:
     def get_by_role(self, db: Session, role: str) -> List[User]:
         return db.query(User).filter(User.role == role).all()
 
+    def update_password(self, db: Session, db_obj: User, new_password: str) -> User:
+        """Update user's password"""
+        hashed_password = get_password_hash(new_password)
+        db_obj.hashed_password = hashed_password
+        db.add(db_obj)
+        db.commit()
+        db.refresh(db_obj)
+        return db_obj
+
 
 user = CRUDUser()

@@ -18,6 +18,7 @@ import {
 import {
   Dashboard as DashboardIcon,
   RestaurantMenu as MenuIcon,
+  Category as CategoryIcon,
   TableBar as TablesIcon,
   ShoppingCart as OrdersIcon,
   EventAvailable as ReservationsIcon,
@@ -64,6 +65,11 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       path: '/admin/menu',
     },
     {
+      label: 'Quản lý danh mục',
+      icon: <CategoryIcon />,
+      path: '/admin/categories',
+    },
+    {
       label: 'Quản lý bàn',
       icon: <TablesIcon />,
       path: '/admin/tables',
@@ -108,7 +114,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       >
         {/* Logo/Header */}
         <Box sx={{ p: 2, bgcolor: '#1a252f', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-          <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#d32f2f', textAlign: 'center' }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', textAlign: 'center' }}>
             🍽️ RestoBot
           </Typography>
         </Box>
@@ -121,17 +127,17 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               key={item.path}
               onClick={() => navigate(item.path)}
               sx={{
-                bgcolor: isActive(item.path) ? 'rgba(211, 47, 47, 0.2)' : 'transparent',
-                borderLeft: isActive(item.path) ? '4px solid #d32f2f' : '4px solid transparent',
+                bgcolor: isActive(item.path) ? 'rgba(25, 118, 210, 0.2)' : 'transparent',
+                borderLeft: isActive(item.path) ? '4px solid #1976d2' : '4px solid transparent',
                 transition: 'all 0.3s',
                 '&:hover': {
-                  bgcolor: 'rgba(211, 47, 47, 0.15)',
+                  bgcolor: 'rgba(25, 118, 210, 0.15)',
                 },
               }}
             >
               <ListItemIcon
                 sx={{
-                  color: isActive(item.path) ? '#d32f2f' : '#ffffff',
+                  color: isActive(item.path) ? '#1976d2' : '#ffffff',
                   minWidth: 40,
                 }}
               >
@@ -194,15 +200,15 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           }}
         >
           <Toolbar>
-            <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold', color: '#d32f2f' }}>
-              Admin Dashboard
+            <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold', color: '#fff' }}>
+           
             </Typography>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Avatar
                 onClick={handleProfileMenuOpen}
                 sx={{
-                  bgcolor: '#d32f2f',
+              
                   cursor: 'pointer',
                   transition: 'transform 0.2s',
                   '&:hover': { transform: 'scale(1.1)' },
@@ -226,8 +232,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 </Typography>
               </MenuItem>
               <Divider />
-              <MenuItem onClick={() => navigate('/profile')}>
-                <Typography variant="body2">Hồ sơ</Typography>
+              <MenuItem onClick={() => navigate('/admin/profile')}>
+                <Typography variant="body2">Hồ sơ của tôi</Typography>
               </MenuItem>
             </Menu>
           </Toolbar>

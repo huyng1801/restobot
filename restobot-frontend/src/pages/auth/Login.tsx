@@ -59,8 +59,18 @@ const Login: React.FC = () => {
     }
 
     try {
-      await login(formData.username, formData.password);
-      navigate(from, { replace: true });
+      const result = await login(formData.username, formData.password);
+      
+      // Check user role and redirect accordingly
+      const user = result?.user;
+      if (user) {
+        if (user.role === 'admin' || user.role === 'staff') {
+          navigate('/admin', { replace: true });
+        } else {
+          // Customer role goes to chat or original intended destination
+          navigate(from, { replace: true });
+        }
+      }
     } catch (error) {
       // Error is handled by AuthContext
     }

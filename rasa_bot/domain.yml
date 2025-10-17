@@ -40,6 +40,11 @@ intents:
   - ask_popular_dishes
   - ask_special_dishes
 
+  # Quản lý hội thoại nâng cao  
+  - contextual_question
+  - modify_specific_field
+  - order_item_reference
+
 entities:
   - number_of_people
   - date
@@ -89,6 +94,20 @@ slots:
   current_order:
     type: list
     initial_value: []
+    influence_conversation: true
+    mappings:
+    - type: custom
+    
+  current_order_id:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: custom
+    
+  active_table_id:
+    type: text
+    initial_value: null
     influence_conversation: true
     mappings:
     - type: custom
@@ -164,6 +183,35 @@ slots:
     mappings:
     - type: from_entity
       entity: quantity
+
+  # Advanced conversation management slots
+  last_mentioned_dishes:
+    type: list
+    initial_value: []
+    influence_conversation: true
+    mappings:
+    - type: custom
+    
+  last_action_type:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: custom
+    
+  item_to_modify:
+    type: any
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: custom
+    
+  modification_type:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: custom
 
 forms:
   booking_form:
@@ -251,31 +299,63 @@ responses:
   - text: "Món đặc biệt hôm nay:"
 
   utter_default:
-  - text: "Xin lỗi, tôi không hiểu yêu cầu của bạn. Bạn có thể nói rõ hơn được không? Tôi có thể giúp bạn đặt bàn, xem thực đơn, gọi món hoặc trả lời thông tin về nhà hàng."
+  - text: "😊 Tôi chưa hiểu rõ ý bạn. Để tôi có thể hỗ trợ tốt hơn, bạn có thể nói cụ thể hơn được không?"
+  - text: "🤔 Có vẻ như tôi chưa nắm được yêu cầu của bạn. Hãy thử diễn đạt theo cách khác nhé!"
+  - text: "💡 Tôi có thể giúp bạn: **đặt bàn**, **xem thực đơn**, **gọi món**, hoặc **hỏi thông tin nhà hàng**. Bạn cần tôi hỗ trợ gì?"
+
+  utter_ask_rephrase:
+  - text: "🙏 Xin lỗi, bạn có thể nói lại theo cách khác được không? Tôi muốn hiểu rõ để hỗ trợ bạn tốt nhất."
+  - text: "😅 Tôi có thể hiểu nhầm ý bạn. Bạn có thể diễn đạt rõ hơn một chút được không?"
 
 actions:
+  # Menu actions
   - action_show_menu
+  - action_show_popular_dishes
+  - action_show_special_dishes
+  - action_show_bestseller_dishes
+  - action_ask_dish_details
+  - action_ask_dish_price
+  - action_recommend_dishes
+
+  # Booking actions
   - action_show_available_tables
   - action_book_table
+  - action_cancel_reservation
+  - action_confirm_cancel_reservation
+  - action_confirm_booking
+  - action_modify_booking
+
+  # Order actions
   - action_add_to_order
   - action_show_current_order
   - action_confirm_order
+  - action_confirm_order_final
   - action_cancel_order
+  - action_confirm_cancel_order
+  - action_deny_cancellation
   - action_modify_order
-  - action_show_popular_dishes
-  - action_show_special_dishes
-  - action_cancel_reservation
-  - action_ask_dish_details
+  - action_remove_from_order
+  - action_modify_order_item
+
+  # Info actions
   - action_show_opening_hours
   - action_show_address
   - action_show_contact
   - action_show_promotions
-  - action_recommend_dishes
-  - action_confirm_booking
-  - action_modify_booking
-  - action_deny_request
+
+  # Conversation management actions
+  - action_handle_contextual_query
+  - action_reset_context
+  - action_conversation_manager
+  - action_update_conversation_context
+  - action_smart_suggestion
+
+  # Form actions
   - booking_form
   - order_form
+
+  # Utility actions
+  - action_deny_request
 
 session_config:
   session_expiration_time: 60

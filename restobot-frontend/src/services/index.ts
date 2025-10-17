@@ -5,6 +5,7 @@ import { tableService, TableService } from './tableService';
 import { orderService, OrderService } from './orderService';
 import { dashboardService, DashboardService } from './dashboardService';
 import { chatService } from './chatService';
+import { categoryService } from './admin/categoryService';
 
 // Export all services
 export { apiClient } from './apiClient';
@@ -14,6 +15,7 @@ export { tableService, TableService } from './tableService';
 export { orderService, OrderService } from './orderService';
 export { dashboardService, DashboardService } from './dashboardService';
 export { chatService } from './chatService';
+export { categoryService } from './admin/categoryService';
 
 // Export for convenience
 export const services = {
@@ -23,4 +25,5 @@ export const services = {
   order: orderService,
   dashboard: dashboardService,
   chat: chatService,
+  category: categoryService,
 };

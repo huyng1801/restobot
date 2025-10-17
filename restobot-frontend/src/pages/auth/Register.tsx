@@ -63,6 +63,8 @@ const Register: React.FC = () => {
     try {
       const { confirmPassword, ...registerData } = formData;
       await register(registerData);
+      
+      // For registration, always redirect to chat since users can only register as customers
       navigate('/chat');
     } catch (error) {
       // Error is handled by AuthContext

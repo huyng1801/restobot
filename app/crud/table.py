@@ -17,14 +17,39 @@ class CRUDTable:
         skip: int = 0, 
         limit: int = 100,
         active_only: bool = True,
-        status: Optional[TableStatus] = None
+        status: Optional[TableStatus] = None,
+        search: Optional[str] = None
     ) -> List[Table]:
         query = db.query(Table)
         if active_only:
             query = query.filter(Table.is_active == True)
         if status:
             query = query.filter(Table.status == status)
+        if search:
+            query = query.filter(
+                Table.table_number.ilike(f"%{search}%") |
+                Table.location.ilike(f"%{search}%")
+            )
         return query.offset(skip).limit(limit).all()
+
+    def count(
+        self, 
+        db: Session, 
+        active_only: bool = True,
+        status: Optional[TableStatus] = None,
+        search: Optional[str] = None
+    ) -> int:
+        query = db.query(Table)
+        if active_only:
+            query = query.filter(Table.is_active == True)
+        if status:
+            query = query.filter(Table.status == status)
+        if search:
+            query = query.filter(
+                Table.table_number.ilike(f"%{search}%") |
+                Table.location.ilike(f"%{search}%")
+            )
+        return query.count()
 
     def get_available_tables(
         self, db: Session, min_capacity: Optional[int] = None

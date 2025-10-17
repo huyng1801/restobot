@@ -7,28 +7,41 @@ from app.crud.table import table as table_crud
 from app.schemas.table import Table, TableCreate, TableUpdate, TableStatusUpdate
 from app.models.table import TableStatus
 from app.api.deps import get_current_staff_user, get_current_user_optional
+from pydantic import BaseModel
 
 router = APIRouter()
 
 
-@router.get("/", response_model=List[Table])
+class TablesResponse(BaseModel):
+    tables: List[Table]
+    total: int
+
+
+@router.get("/", response_model=TablesResponse)
 def read_tables(
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
     active_only: bool = Query(True, description="Filter only active tables"),
     status: Optional[TableStatus] = Query(None, description="Filter by status"),
+    search: Optional[str] = Query(None, description="Search by table number or location"),
     current_user = Depends(get_current_user_optional),
 ) -> Any:
     """
-    Retrieve tables.
+    Retrieve tables with pagination and search.
     """
     tables = table_crud.get_multi(
         db, skip=skip, limit=limit, 
         active_only=active_only, 
-        status=status
+        status=status,
+        search=search
     )
-    return tables
+    total = table_crud.count(
+        db, active_only=active_only, 
+        status=status,
+        search=search
+    )
+    return TablesResponse(tables=tables, total=total)
 
 
 @router.get("/available", response_model=List[Table])

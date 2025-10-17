@@ -37,6 +37,13 @@ class CategoryWithItems(CategoryInDBBase):
     menu_items: List[Any] = []  # Use Any to avoid circular reference
 
 
+class PaginatedCategoryResponse(BaseModel):
+    items: List[Category]
+    total: int
+    skip: int
+    limit: int
+
+
 # Menu Item Schemas
 class MenuItemBase(BaseModel):
     name: str
@@ -106,16 +113,30 @@ class MenuItemSimple(MenuItemInDBBase):
     pass
 
 
-# Update forward references for Pydantic v1 compatibility  
+# Paginated Response Schemas
+class PaginatedMenuResponse(BaseModel):
+    items: List[MenuItem]
+    total: int
+    page: int
+    size: int
+    pages: int
+
+    class Config:
+        orm_mode = True
+
+
+# Update forward references for Pydantic v1 compatibility
 try:
     # Pydantic v2
     CategoryWithItems.model_rebuild()
     MenuItem.model_rebuild()
+    PaginatedMenuResponse.model_rebuild()
 except AttributeError:
     # Pydantic v1 - use update_forward_refs()
     try:
         CategoryWithItems.update_forward_refs()
         MenuItem.update_forward_refs()
+        PaginatedMenuResponse.update_forward_refs()
     except NameError:
         # Forward references will be resolved when all classes are defined
         pass

@@ -6,7 +6,7 @@ from app.core.database import get_db
 from app.crud.menu import category as category_crud, menu_item as menu_item_crud
 from app.schemas.menu import (
     Category, CategoryCreate, CategoryUpdate, CategoryWithItems,
-    MenuItem, MenuItemCreate, MenuItemUpdate
+    MenuItem, MenuItemCreate, MenuItemUpdate, PaginatedMenuResponse, PaginatedCategoryResponse
 )
 from app.api.deps import get_current_staff_user, get_current_user_optional
 
@@ -14,19 +14,29 @@ router = APIRouter()
 
 
 # Category endpoints
-@router.get("/categories/", response_model=List[Category])
+@router.get("/categories/", response_model=PaginatedCategoryResponse)
 def read_categories(
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
+    q: Optional[str] = Query(None, description="Search query"),
     active_only: bool = Query(True, description="Filter only active categories"),
     # current_user = Depends(get_current_user_optional),  # Tạm disable auth
 ) -> Any:
     """
-    Retrieve categories.
+    Retrieve categories with pagination and search.
     """
-    categories = category_crud.get_multi(db, skip=skip, limit=limit, active_only=active_only)
-    return categories
+    categories = category_crud.get_multi_with_search(
+        db, skip=skip, limit=limit, search=q, active_only=active_only
+    )
+    total = category_crud.count_with_search(db, search=q, active_only=active_only)
+    
+    return PaginatedCategoryResponse(
+        items=categories,
+        total=total,
+        skip=skip,
+        limit=limit
+    )
 
 
 @router.get("/categories/with-items", response_model=List[CategoryWithItems])
@@ -134,24 +144,48 @@ def delete_category(
 
 
 # Menu Item endpoints
-@router.get("/items/", response_model=List[MenuItem])
+@router.get("/items/", response_model=PaginatedMenuResponse)
 def read_menu_items(
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
     available_only: bool = Query(True, description="Filter only available items"),
     category_id: Optional[int] = Query(None, description="Filter by category"),
+    q: Optional[str] = Query(None, description="Search term for item name"),
+    is_featured: Optional[bool] = Query(None, description="Filter by featured status"),
+    is_available: Optional[bool] = Query(None, description="Filter by availability status"),
     # current_user = Depends(get_current_user_optional),  # Tạm disable auth
 ) -> Any:
     """
-    Retrieve menu items.
+    Retrieve menu items with pagination and search.
     """
+    # Get total count with filters applied
+    total = menu_item_crud.get_count(
+        db, available_only=available_only, category_id=category_id, search_term=q,
+        is_featured=is_featured, is_available=is_available
+    )
+    
+    # Get items with pagination
     items = menu_item_crud.get_multi(
         db, skip=skip, limit=limit, 
         available_only=available_only, 
-        category_id=category_id
+        category_id=category_id,
+        search_term=q,
+        is_featured=is_featured,
+        is_available=is_available
     )
-    return items
+    
+    # Calculate pagination info
+    pages = (total + limit - 1) // limit if limit > 0 else 1
+    page = skip // limit if limit > 0 else 0
+    
+    return {
+        "items": items,
+        "total": total,
+        "page": page,
+        "size": limit,
+        "pages": pages
+    }
 
 
 @router.get("/items/featured", response_model=List[MenuItem])

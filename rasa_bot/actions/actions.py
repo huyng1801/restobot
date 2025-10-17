@@ -23,27 +23,36 @@ try:
         ActionShowMenu,
         ActionAskDishDetails,
         ActionShowPopularDishes,
-        ActionShowSpecialDishes
+        ActionShowSpecialDishes,
+        ActionAskDishPrice,
+        ActionShowBestsellerDishes
     )
 
     from modules.booking_actions import (
         ActionAskTableBookingInfo,
         ActionShowAvailableTables,
         ActionBookTable,
-        ActionCancelReservation
+        ActionCancelReservation,
+        ActionConfirmCancelReservation
     )
 
     from modules.confirmation_actions import (
         ActionConfirmBooking,
         ActionModifyBooking,
-        ActionConfirmOrder
+        ActionConfirmOrder as ActionConfirmOrderFinal,
+        ActionHandleContextualQuery,
+        ActionResetContext,
+        ActionModifyOrderItem
     )
-
+    
     from modules.order_actions import (
         ActionAddToOrder,
         ActionViewCurrentOrder,
         ActionConfirmOrder,
-        ActionCancelOrder
+        ActionCancelOrder,
+        ActionRemoveFromOrder,
+        ActionConfirmCancelOrder,
+        ActionDenyCancellation
     )
 
     from modules.info_actions import (
@@ -52,6 +61,13 @@ try:
         ActionShowContact,
         ActionShowPromotions,
         ActionRecommendDishes
+    )
+
+    # Import conversation management actions
+    from modules.conversation_manager import (
+        ActionConversationManager,
+        ActionUpdateConversationContext,
+        ActionSmartSuggestion
     )
 
     print("All action modules imported successfully!")
@@ -76,19 +92,32 @@ __all__ = [
     'ActionAskDishDetails', 
     'ActionShowPopularDishes',
     'ActionShowSpecialDishes',
+    'ActionAskDishPrice',
+    'ActionShowBestsellerDishes',
     'ActionAskTableBookingInfo',
     'ActionShowAvailableTables',
     'ActionBookTable',
     'ActionCancelReservation',
+    'ActionConfirmCancelReservation',
     'ActionConfirmBooking',
     'ActionModifyBooking',
     'ActionConfirmOrder',
+    'ActionConfirmOrderFinal',
     'ActionAddToOrder',
     'ActionViewCurrentOrder',
     'ActionCancelOrder',
+    'ActionRemoveFromOrder',
+    'ActionConfirmCancelOrder',
+    'ActionDenyCancellation',
     'ActionShowOpeningHours',
     'ActionShowAddress',
     'ActionShowContact',
     'ActionShowPromotions',
-    'ActionRecommendDishes'
+    'ActionRecommendDishes',
+    'ActionHandleContextualQuery',
+    'ActionResetContext',
+    'ActionModifyOrderItem',
+    'ActionConversationManager',
+    'ActionUpdateConversationContext',
+    'ActionSmartSuggestion'
 ]

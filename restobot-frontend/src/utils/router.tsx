@@ -17,10 +17,12 @@ const Profile = lazy(() => import('../pages/customer/Profile'));
 // Admin pages
 const Dashboard = lazy(() => import('../pages/admin/Dashboard'));
 const AdminMenu = lazy(() => import('../pages/admin/menu/AdminMenu'));
+const AdminCategories = lazy(() => import('../pages/admin/categories/AdminCategories'));
 const AdminTables = lazy(() => import('../pages/admin/tables/AdminTables'));
 const AdminOrders = lazy(() => import('../pages/admin/orders/AdminOrders'));
 const AdminReservations = lazy(() => import('../pages/admin/reservations/AdminReservations'));
 const AdminUsers = lazy(() => import('../pages/admin/users/AdminUsers'));
+const AdminProfile = lazy(() => import('../pages/admin/profile/AdminProfile'));
 
 // Error pages
 const NotFound = lazy(() => import('../pages/error/NotFound'));
@@ -142,6 +144,16 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: 'admin/categories',
+        element: (
+          <AdminRoute>
+            <SuspenseWrapper>
+              <AdminCategories />
+            </SuspenseWrapper>
+          </AdminRoute>
+        ),
+      },
+      {
         path: 'admin/tables',
         element: (
           <AdminRoute>
@@ -177,6 +189,16 @@ export const router = createBrowserRouter([
           <AdminRoute>
             <SuspenseWrapper>
               <AdminUsers />
+            </SuspenseWrapper>
+          </AdminRoute>
+        ),
+      },
+      {
+        path: 'admin/profile',
+        element: (
+          <AdminRoute>
+            <SuspenseWrapper>
+              <AdminProfile />
             </SuspenseWrapper>
           </AdminRoute>
         ),
@@ -229,6 +251,7 @@ export const routes = {
   adminOrders: '/admin/orders',
   adminReservations: '/admin/reservations',
   adminUsers: '/admin/users',
+  adminProfile: '/admin/profile',
   
   // Error routes
   unauthorized: '/unauthorized',
@@ -252,6 +275,7 @@ export const getRouteTitle = (pathname: string): string => {
     [routes.adminOrders]: 'Quản lý đơn hàng',
     [routes.adminReservations]: 'Quản lý đặt bàn',
     [routes.adminUsers]: 'Quản lý người dùng',
+    [routes.adminProfile]: 'Hồ sơ cá nhân',
     [routes.unauthorized]: 'Không có quyền truy cập',
     [routes.notFound]: 'Không tìm thấy trang',
   };

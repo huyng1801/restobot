@@ -19,6 +19,27 @@ class CRUDCategory:
             query = query.filter(Category.is_active == True)
         return query.offset(skip).limit(limit).all()
 
+    def get_multi_with_search(
+        self, db: Session, skip: int = 0, limit: int = 100, search: Optional[str] = None, active_only: bool = True
+    ) -> List[Category]:
+        query = db.query(Category)
+        if active_only:
+            query = query.filter(Category.is_active == True)
+        if search:
+            query = query.filter(Category.name.ilike(f"%{search}%"))
+        query = query.order_by(Category.name.asc())
+        return query.offset(skip).limit(limit).all()
+
+    def count_with_search(
+        self, db: Session, search: Optional[str] = None, active_only: bool = True
+    ) -> int:
+        query = db.query(Category)
+        if active_only:
+            query = query.filter(Category.is_active == True)
+        if search:
+            query = query.filter(Category.name.ilike(f"%{search}%"))
+        return query.count()
+
     def create(self, db: Session, obj_in: CategoryCreate) -> Category:
         db_obj = Category(
             name=obj_in.name,
@@ -62,14 +83,46 @@ class CRUDMenuItem:
         skip: int = 0, 
         limit: int = 100,
         available_only: bool = True,
-        category_id: Optional[int] = None
+        category_id: Optional[int] = None,
+        search_term: Optional[str] = None,
+        is_featured: Optional[bool] = None,
+        is_available: Optional[bool] = None
     ) -> List[MenuItem]:
         query = db.query(MenuItem)
         if available_only:
             query = query.filter(MenuItem.is_available == True)
         if category_id:
             query = query.filter(MenuItem.category_id == category_id)
+        if search_term:
+            query = query.filter(MenuItem.name.ilike(f"%{search_term}%"))
+        if is_featured is not None:
+            query = query.filter(MenuItem.is_featured == is_featured)
+        if is_available is not None:
+            query = query.filter(MenuItem.is_available == is_available)
+        query = query.order_by(MenuItem.name.asc())
         return query.offset(skip).limit(limit).all()
+
+    def get_count(
+        self, 
+        db: Session, 
+        available_only: bool = True,
+        category_id: Optional[int] = None,
+        search_term: Optional[str] = None,
+        is_featured: Optional[bool] = None,
+        is_available: Optional[bool] = None
+    ) -> int:
+        query = db.query(MenuItem)
+        if available_only:
+            query = query.filter(MenuItem.is_available == True)
+        if category_id:
+            query = query.filter(MenuItem.category_id == category_id)
+        if search_term:
+            query = query.filter(MenuItem.name.ilike(f"%{search_term}%"))
+        if is_featured is not None:
+            query = query.filter(MenuItem.is_featured == is_featured)
+        if is_available is not None:
+            query = query.filter(MenuItem.is_available == is_available)
+        return query.count()
 
     def get_featured(self, db: Session) -> List[MenuItem]:
         return db.query(MenuItem).filter(

@@ -77,14 +77,14 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
 
 // Auth context interface
 interface AuthContextType extends AuthState {
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<{ user: User; token: string }>;
   register: (userData: {
     username: string;
     email: string;
     password: string;
     full_name: string;
     phone_number?: string;
-  }) => Promise<void>;
+  }) => Promise<{ user: User; token: string }>;
   logout: () => void;
   updateUser: (user: User) => void;
   clearError: () => void;
@@ -131,6 +131,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('user', JSON.stringify(user));
 
       dispatch({ type: 'AUTH_SUCCESS', payload: { user, token: access_token } });
+      
+      return { user, token: access_token };
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Đăng nhập thất bại';
       dispatch({ type: 'AUTH_FAILURE', payload: message });
@@ -157,6 +159,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('user', JSON.stringify(user));
 
       dispatch({ type: 'AUTH_SUCCESS', payload: { user, token: access_token } });
+      
+      return { user, token: access_token };
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Đăng ký thất bại';
       dispatch({ type: 'AUTH_FAILURE', payload: message });

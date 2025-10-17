@@ -172,6 +172,7 @@ export const endpoints = {
     create: '/api/v1/users/',
     me: '/api/v1/users/me',
     updateMe: '/api/v1/users/me',
+    changePassword: '/api/v1/users/me/change-password',
     get: (id: number) => `/api/v1/users/${id}`,
     update: (id: number) => `/api/v1/users/${id}`,
     delete: (id: number) => `/api/v1/users/${id}`,

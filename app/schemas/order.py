@@ -54,6 +54,18 @@ class Reservation(ReservationInDBBase):
     pass
 
 
+class ReservationWithDetails(ReservationInDBBase):
+    # Customer information
+    customer_name: Optional[str] = None
+    customer_email: Optional[str] = None
+    customer_phone: Optional[str] = None
+    
+    # Table information
+    table_number: Optional[str] = None
+    table_capacity: Optional[int] = None
+    table_location: Optional[str] = None
+
+
 # Order Item Schemas
 class OrderItemBase(BaseModel):
     menu_item_id: int
@@ -135,6 +147,14 @@ class Order(OrderInDBBase):
     order_items: List[Any] = []  # Use Any to avoid circular reference
 
 
+class OrderWithDetails(OrderInDBBase):
+    """Order with customer and table details for admin view"""
+    customer_name: Optional[str] = None
+    customer_email: Optional[str] = None
+    table_number: Optional[str] = None
+    order_items: List[Any] = []
+
+
 class OrderSummary(BaseModel):
     """Summary for dashboard/statistics"""
     total_orders: int
@@ -143,18 +163,73 @@ class OrderSummary(BaseModel):
     total_revenue: float
 
 
+class DashboardStats(BaseModel):
+    """Complete dashboard statistics"""
+    # Orders
+    total_orders: int
+    pending_orders: int
+    completed_orders: int
+    total_revenue: float
+    
+    # Tables
+    total_tables: int
+    available_tables: int
+    occupied_tables: int
+    reserved_tables: int
+    
+    # Users
+    total_customers: int
+    total_staff: int
+    
+    # Menu
+    total_menu_items: int
+    available_menu_items: int
+    
+    # Reservations
+    total_reservations: int
+    pending_reservations: int
+    confirmed_reservations: int
+    
+    # Recent activity
+    recent_orders: List[dict] = []
+    recent_reservations: List[dict] = []
+    popular_items: List[dict] = []
+
+# Paginated Response Schemas
+class PaginatedReservationResponse(BaseModel):
+    items: List[ReservationWithDetails]
+    total: int
+    page: int
+    size: int
+    pages: int
+
+    class Config:
+        orm_mode = True
+
+class PaginatedOrderResponse(BaseModel):
+    items: List[OrderWithDetails]
+    total: int
+    skip: int
+    limit: int
+
+    class Config:
+        orm_mode = True
+
+
 # Update forward references for Pydantic v1 compatibility
 try:
     # Pydantic v2
     OrderCreate.model_rebuild()
     Order.model_rebuild()
     OrderItem.model_rebuild()
+    PaginatedReservationResponse.model_rebuild()
 except AttributeError:
     # Pydantic v1 - use update_forward_refs()
     try:
         OrderCreate.update_forward_refs()
         Order.update_forward_refs()
         OrderItem.update_forward_refs()
+        PaginatedReservationResponse.update_forward_refs()
     except NameError:
         # Forward references will be resolved when all classes are defined
         pass

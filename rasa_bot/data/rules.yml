@@ -27,7 +27,7 @@ rules:
 - rule: Show featured dishes
   steps:
   - intent: ask_featured_dishes
-  - action: action_show_special_dishes
+  - action: action_show_bestseller_dishes
 
 - rule: Show popular dishes
   steps:
@@ -52,7 +52,7 @@ rules:
 - rule: Show dish price
   steps:
   - intent: ask_dish_price
-  - action: action_ask_dish_details
+  - action: action_ask_dish_price
 
 # ===== BOOKING RULES =====
 - rule: Book table
@@ -131,6 +131,44 @@ rules:
   steps:
   - intent: ask_promotions
   - action: action_show_promotions
+
+# ===== CONVERSATION MANAGEMENT RULES =====
+- rule: Handle contextual questions
+  steps:
+  - intent: contextual_question
+  - action: action_conversation_manager
+
+- rule: Handle order item references  
+  steps:
+  - intent: order_item_reference
+  - action: action_conversation_manager
+
+- rule: Handle specific field modifications
+  steps:
+  - intent: modify_specific_field
+  - action: action_modify_booking
+
+- rule: Update conversation context after actions
+  steps:
+  - action: action_show_menu
+  - action: action_update_conversation_context
+
+- rule: Update context after booking actions
+  steps:
+  - action: action_book_table
+  - action: action_update_conversation_context
+
+- rule: Update context after order actions  
+  steps:
+  - action: action_add_to_order
+  - action: action_update_conversation_context
+
+- rule: Provide smart suggestions on unclear input
+  condition:
+  - slot_was_set:
+    - conversation_context: null
+  steps:
+  - action: action_smart_suggestion
 
 # ===== AFFIRMATION/DENIAL RULES =====
 - rule: Affirm with greeting

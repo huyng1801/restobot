@@ -16,6 +16,8 @@ import {
   CardContent,
   Stack,
   CircularProgress,
+  Alert,
+  AlertTitle,
 } from '@mui/material';
 import {
   Send as SendIcon,
@@ -27,8 +29,11 @@ import {
   Info as InfoIcon,
   ShoppingCart as CartIcon,
   Circle as StatusIcon,
+  Login as LoginIcon,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { chatService } from '../../services/chatService';
+import { useAuth } from '../../hooks/useAuth';
 
 interface Message {
   id: string;
@@ -50,6 +55,61 @@ const quickButtons = [
   { icon: <InfoIcon />, text: 'Thông tin nhà hàng', action: 'Cho tôi biết thông tin về nhà hàng' },
 ];
 
+// Gợi ý tin nhắn dựa trên NLU
+const messageSuggestions = [
+  // Greeting & Basics
+  { category: '👋 Chào hỏi', text: 'Xin chào', color: '#4CAF50' },
+  { category: '👋 Chào hỏi', text: 'Bạn có thể giúp tôi không', color: '#4CAF50' },
+  
+  // Menu & Dishes
+  { category: '🍽️ Thực đơn', text: 'Cho tôi xem thực đơn', color: '#FF9800' },
+  { category: '🍽️ Thực đơn', text: 'Có những món gì', color: '#FF9800' },
+  { category: '🍽️ Thực đơn', text: 'Món nổi bật', color: '#FF9800' },
+  { category: '🍽️ Thực đơn', text: 'Bạn recommend cái gì', color: '#FF9800' },
+  { category: '🍽️ Thực đơn', text: 'Món nào được ưa chuộng', color: '#FF9800' },
+  { category: '🍽️ Thực đơn', text: 'Món đặc biệt', color: '#FF9800' },
+  { category: '🍽️ Thực đơn', text: 'Signature dish', color: '#FF9800' },
+  
+  // Booking
+  { category: '🪑 Đặt bàn', text: 'Tôi muốn đặt bàn', color: '#2196F3' },
+  { category: '🪑 Đặt bàn', text: 'Đặt bàn 4 người', color: '#2196F3' },
+  { category: '🪑 Đặt bàn', text: 'Có bàn trống không', color: '#2196F3' },
+  { category: '🪑 Đặt bàn', text: 'Đặt bàn tối nay 19:30', color: '#2196F3' },
+  { category: '🪑 Đặt bàn', text: 'Đặt bàn cho gia đình', color: '#2196F3' },
+  { category: '🪑 Đặt bàn', text: 'Hủy đặt bàn', color: '#2196F3' },
+  
+  // Ordering
+  { category: '🛒 Gọi món', text: 'Tôi muốn gọi món', color: '#9C27B0' },
+  { category: '🛒 Gọi món', text: 'Gọi đồ ăn', color: '#9C27B0' },
+  { category: '🛒 Gọi món', text: 'Xem đơn hàng', color: '#9C27B0' },
+  { category: '🛒 Gọi món', text: 'Xác nhận đơn hàng', color: '#9C27B0' },
+  { category: '🛒 Gọi món', text: 'Thêm món vào đơn', color: '#9C27B0' },
+  { category: '🛒 Gọi món', text: 'Sửa đơn hàng', color: '#9C27B0' },
+  
+  // Restaurant Info
+  { category: 'ℹ️ Thông tin', text: 'Giờ mở cửa', color: '#607D8B' },
+  { category: 'ℹ️ Thông tin', text: 'Địa chỉ nhà hàng', color: '#607D8B' },
+  { category: 'ℹ️ Thông tin', text: 'Số điện thoại', color: '#607D8B' },
+  { category: 'ℹ️ Thông tin', text: 'Có khuyến mãi gì không', color: '#607D8B' },
+  { category: 'ℹ️ Thông tin', text: 'Thông tin liên hệ', color: '#607D8B' },
+  
+  // Popular dishes examples
+  { category: '🍜 Món ăn', text: 'Tôi muốn ăn phở bò', color: '#E91E63' },
+  { category: '🍜 Món ăn', text: 'Cho tôi 2 phần bò bít tết', color: '#E91E63' },
+  { category: '🍜 Món ăn', text: 'Gọi 1 ly cà phê', color: '#E91E63' },
+  { category: '🍜 Món ăn', text: 'Thêm cá hồi nướng', color: '#E91E63' },
+  { category: '🍜 Món ăn', text: 'Giá món này bao nhiêu', color: '#E91E63' },
+  
+  // Confirmations
+  { category: '✅ Xác nhận', text: 'Có, tôi đồng ý', color: '#4CAF50' },
+  { category: '✅ Xác nhận', text: 'Được rồi', color: '#4CAF50' },
+  { category: '✅ Xác nhận', text: 'Xác nhận', color: '#4CAF50' },
+  { category: '❌ Từ chối', text: 'Không, cảm ơn', color: '#F44336' },
+  { category: '❌ Từ chối', text: 'Hủy bỏ', color: '#F44336' },
+  { category: '👋 Tạm biệt', text: 'Cảm ơn bạn', color: '#9E9E9E' },
+  { category: '👋 Tạm biệt', text: 'Tạm biệt', color: '#9E9E9E' },
+];
+
 const formatMessage = (text: string): string => {
   return text
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -59,15 +119,24 @@ const formatMessage = (text: string): string => {
 
 const ChatInterface: React.FC = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [shuffledSuggestions, setShuffledSuggestions] = useState(messageSuggestions);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({
     rasa: false,
     fastApi: false,
     message: '🔗 Đang kiểm tra kết nối...'
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Shuffle suggestions on component mount
+  useEffect(() => {
+    const shuffled = [...messageSuggestions].sort(() => Math.random() - 0.5);
+    setShuffledSuggestions(shuffled);
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -118,6 +187,18 @@ Bạn có thể sử dụng các nút bên dưới hoặc nhập trực tiếp!`
     const messageText = text || inputValue.trim();
     if (!messageText) return;
 
+    // Kiểm tra đăng nhập trước khi gửi
+    if (!user) {
+      const loginMessage: Message = {
+        id: Date.now().toString(),
+        text: '🔒 Bạn cần đăng nhập để sử dụng chatbot!\n\nVui lòng đăng nhập trước khi tiếp tục.',
+        sender: 'bot',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, loginMessage]);
+      return;
+    }
+
     // Thêm tin nhắn người dùng
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -131,7 +212,16 @@ Bạn có thể sử dụng các nút bên dưới hoặc nhập trực tiếp!`
 
     try {
       console.log('Sending message:', messageText);
-      const response = await chatService.sendMessage(messageText);
+      console.log('User info:', user);
+      
+      // Gửi message cùng với thông tin user
+      const response = await chatService.sendMessage(messageText, {
+        user_id: user?.id,
+        username: user?.username,
+        full_name: user?.full_name,
+        email: user?.email,
+        phone: user?.phone
+      });
       console.log('Chat response:', response);
       
       // Thêm phản hồi từ bot
@@ -159,6 +249,10 @@ Bạn có thể sử dụng các nút bên dưới hoặc nhập trực tiếp!`
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     sendMessage();
+  };
+
+  const handleSuggestionClick = (suggestionText: string) => {
+    sendMessage(suggestionText);
   };
 
   const ConnectionIndicator = () => (
@@ -297,29 +391,6 @@ Bạn có thể sử dụng các nút bên dưới hoặc nhập trực tiếp!`
               </Box>
             ))}
 
-            {/* Quick Buttons - chỉ hiện khi mới bắt đầu chat */}
-            {messages.length === 1 && (
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-                  Gợi ý nhanh:
-                </Typography>
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                  {quickButtons.map((button, index) => (
-                    <Button
-                      key={index}
-                      variant="outlined"
-                      size="small"
-                      startIcon={button.icon}
-                      onClick={() => sendMessage(button.action)}
-                      sx={{ mb: 1 }}
-                    >
-                      {button.text}
-                    </Button>
-                  ))}
-                </Stack>
-              </Box>
-            )}
-
             {/* Typing Indicator */}
             {isTyping && (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -350,6 +421,93 @@ Bạn có thể sử dụng các nút bên dưới hoặc nhập trực tiếp!`
         </Box>
 
         <Divider />
+
+        {/* Message Suggestions */}
+        <Box
+          sx={{
+            p: 2,
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            bgcolor: 'background.paper',
+            position: 'relative',
+          }}
+        >
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              mb: 1.5, 
+              fontWeight: 600, 
+              color: 'text.primary',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+            }}
+          >
+            💡 Gợi ý tin nhắn nhanh:
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                color: 'text.secondary',
+                fontStyle: 'italic',
+                ml: 'auto'
+              }}
+            >
+              Click để gửi
+            </Typography>
+          </Typography>
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 1,
+              maxHeight: '140px',
+              overflowY: 'auto',
+              '&::-webkit-scrollbar': {
+                width: '4px',
+              },
+              '&::-webkit-scrollbar-track': {
+                background: theme.palette.grey[100],
+                borderRadius: '2px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: theme.palette.grey[300],
+                borderRadius: '2px',
+                '&:hover': {
+                  background: theme.palette.grey[400],
+                },
+              },
+            }}
+          >
+            {shuffledSuggestions.map((suggestion, index) => (
+              <Chip
+                key={index}
+                label={suggestion.text}
+                onClick={() => handleSuggestionClick(suggestion.text)}
+                size="small"
+                sx={{
+                  cursor: 'pointer',
+                  bgcolor: suggestion.color + '10',
+                  color: suggestion.color,
+                  border: `1px solid ${suggestion.color}40`,
+                  fontSize: '0.75rem',
+                  fontWeight: 500,
+                  borderRadius: '16px',
+                  '&:hover': {
+                    bgcolor: suggestion.color + '20',
+                    transform: 'translateY(-1px)',
+                    boxShadow: `0 2px 8px ${suggestion.color}30`,
+                    borderColor: suggestion.color + '60',
+                  },
+                  '&:active': {
+                    transform: 'translateY(0px)',
+                    boxShadow: `0 1px 4px ${suggestion.color}20`,
+                  },
+                  transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}
+              />
+            ))}
+          </Box>
+        </Box>
 
         {/* Input Area */}
         <Paper

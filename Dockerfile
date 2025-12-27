@@ -24,16 +24,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy Python dependencies from builder
-COPY --from=builder /root/.local /root/.local
-
-# Set PATH to use local pip installations
-ENV PATH=/root/.local/bin:$PATH \
-    PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    SQLALCHEMY_WARN_20=0 \
-    SQLALCHEMY_SILENCE_UBER_WARNING=1 \
-    PYDANTIC_V1=1
 
 # Copy application code
 COPY . .

@@ -1,0 +1,16 @@
+# Development Dockerfile for React App with hot reload
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY restobot-frontend/package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Expose port
+EXPOSE 3000
+
+# Start development server
+CMD ["npm", "start"]

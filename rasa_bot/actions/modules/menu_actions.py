@@ -23,6 +23,8 @@ class ActionShowMenu(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         message = ""
+        dishes_list = []
+        
         try:
             # Lấy auth headers từ token trong tracker, fallback to Rasa headers
             headers = get_auth_headers_from_tracker(tracker)
@@ -59,13 +61,19 @@ class ActionShowMenu(Action):
                         else:
                             items = items_data
                         
-                        for item in items[:3]:  # Chỉ hiển thị 3 món đầu mỗi danh mục
-                            price_formatted = f"{item['price']:,.0f}đ" if item.get('price') else "Liên hệ"
-                            message += f"   • {item['name']} - {price_formatted}\n"
-                            if item['description']:
-                                message += f"     _{item['description']}_\n"
-                        if len(items) > 3:
-                            message += f"     ... và {len(items) - 3} món khác\n"
+                        # Thêm tất cả món vào danh sách
+                        for item in items:
+                            dishes_list.append({
+                                'name': item['name'],
+                                'price': item.get('price'),
+                                'description': item.get('description'),
+                                'image_url': item.get('image_url'),
+                                'preparation_time': item.get('preparation_time'),
+                                'category': category['name']
+                            })
+                        
+                        item_count = len(items)
+                        message += f"   {item_count} món ăn\n"
                     message += "\n"
 
                 message += "💡 **Cách gọi món:**\n"
@@ -85,7 +93,8 @@ class ActionShowMenu(Action):
             message = f"❌ Có lỗi bất ngờ xảy ra khi tải thực đơn. Vui lòng liên hệ hỗ trợ."
             print(f"Unexpected error in ActionShowMenu: {e}")
 
-        dispatcher.utter_message(text=message)
+        # Gửi message với custom data chứa danh sách món
+        dispatcher.utter_message(text=message, custom={'dishes': dishes_list})
         return []
 
 
@@ -142,6 +151,10 @@ class ActionAskDishDetails(Action):
                     
                     message += f"\n💡 Bạn có muốn gọi món này không?"
                     
+                    # Gửi hình ảnh nếu có
+                    if item.get('image_url'):
+                        dispatcher.utter_message(image=item['image_url'])
+                    
                     return [SlotSet("last_mentioned_dish", item['name'])]
                 else:
                     message = f"Xin lỗi, không tìm thấy món '{dish_name}' trong thực đơn. Bạn có thể xem thực đơn để chọn món khác."
@@ -172,6 +185,8 @@ class ActionShowPopularDishes(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         message = ""
+        dishes_list = []
+        
         try:
             # Lấy auth headers từ token trong tracker, fallback to Rasa headers
             headers = get_auth_headers_from_tracker(tracker)
@@ -186,12 +201,16 @@ class ActionShowPopularDishes(Action):
                     message = "🌟 **MÓN ĂN PHỔ BIẾN**\n\n"
                     
                     for item in items:
-                        price_formatted = f"{item['price']:,.0f}đ" if item.get('price') else "Liên hệ"
-                        message += f"⭐ **{item['name']}** - {price_formatted}\n"
-                        if item['description']:
-                            message += f"   _{item['description']}_\n"
-                        message += "\n"
+                        dishes_list.append({
+                            'name': item['name'],
+                            'price': item.get('price'),
+                            'description': item.get('description'),
+                            'image_url': item.get('image_url'),
+                            'preparation_time': item.get('preparation_time'),
+                            'category': item.get('category', {}).get('name') if item.get('category') else None
+                        })
                     
+                    message += f"Hiển thị {len(items)} món phổ biến nhất\n\n"
                     message += "💡 Bạn có muốn gọi món nào không?"
                     
                 else:
@@ -209,7 +228,7 @@ class ActionShowPopularDishes(Action):
             message = f"❌ Có lỗi bất ngờ xảy ra khi tải món phổ biến."
             print(f"Unexpected error in ActionShowPopularDishes: {e}")
         
-        dispatcher.utter_message(text=message)
+        dispatcher.utter_message(text=message, custom={'dishes': dishes_list})
         return []
 
 
@@ -223,6 +242,8 @@ class ActionShowSpecialDishes(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         message = ""
+        dishes_list = []
+        
         # Tạm thời trả về featured dishes
         try:
             # Lấy auth headers từ token trong tracker, fallback to Rasa headers
@@ -236,14 +257,16 @@ class ActionShowSpecialDishes(Action):
                     message = "🍽️ **MÓN ĐẶC BIỆT HÔM NAY**\n\n"
                     
                     for item in items:
-                        price_formatted = f"{item['price']:,.0f}đ" if item.get('price') else "Liên hệ"
-                        message += f"✨ **{item['name']}** - {price_formatted}\n"
-                        if item['description']:
-                            message += f"   _{item['description']}_\n"
-                        if item.get('preparation_time'):
-                            message += f"   ⏱️ Thời gian: {item['preparation_time']} phút\n"
-                        message += "\n"
+                        dishes_list.append({
+                            'name': item['name'],
+                            'price': item.get('price'),
+                            'description': item.get('description'),
+                            'image_url': item.get('image_url'),
+                            'preparation_time': item.get('preparation_time'),
+                            'category': item.get('category', {}).get('name') if item.get('category') else None
+                        })
                     
+                    message += f"Hiển thị {len(items)} món đặc biệt\n\n"
                     message += "💡 Đây là những món đặc biệt được đầu bếp khuyến nghị!"
                     
                 else:
@@ -261,7 +284,7 @@ class ActionShowSpecialDishes(Action):
             message = f"❌ Có lỗi bất ngờ xảy ra khi tải món đặc biệt."
             print(f"Unexpected error in ActionShowSpecialDishes: {e}")
         
-        dispatcher.utter_message(text=message)
+        dispatcher.utter_message(text=message, custom={'dishes': dishes_list})
         return []
 
 
@@ -362,6 +385,8 @@ class ActionShowBestsellerDishes(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         message = ""
+        dishes_list = []
+        
         try:
             # Lấy auth headers từ token trong tracker, fallback to Rasa headers
             headers = get_auth_headers_from_tracker(tracker)
@@ -380,14 +405,18 @@ class ActionShowBestsellerDishes(Action):
                         item_response = requests.get(f"{API_BASE_URL}/menu/items/{item['menu_item_id']}", headers=headers, timeout=5)
                         if item_response.status_code == 200:
                             item_detail = item_response.json()
-                            price_formatted = f"{item_detail['price']:,.0f}đ" if item_detail.get('price') else "Liên hệ"
                             total_sold = item.get('total_quantity', 0)
                             
-                            message += f"{idx}. 🏆 **{item_detail['name']}** - {price_formatted}\n"
-                            if item_detail.get('description'):
-                                message += f"   _{item_detail['description'][:50]}{'...' if len(item_detail.get('description', '')) > 50 else ''}_\n"
-                            message += f"   📊 Đã bán: {total_sold} suất\n\n"
+                            dishes_list.append({
+                                'name': item_detail['name'],
+                                'price': item_detail.get('price'),
+                                'description': f"{item_detail.get('description', '')} - Đã bán: {total_sold} suất",
+                                'image_url': item_detail.get('image_url'),
+                                'preparation_time': item_detail.get('preparation_time'),
+                                'category': item_detail.get('category', {}).get('name') if item_detail.get('category') else None
+                            })
                     
+                    message += f"Top {len(dishes_list)} món bán chạy nhất\n\n"
                     message += "💡 Đây là những món được khách hàng yêu thích nhất!"
                     
                 else:
@@ -400,11 +429,14 @@ class ActionShowBestsellerDishes(Action):
                             message = "🌟 **MÓN ĐƯỢC ĐỀ XUẤT** (Chưa có dữ liệu bán hàng)\n\n"
                             
                             for item in featured_items[:3]:
-                                price_formatted = f"{item['price']:,.0f}đ" if item.get('price') else "Liên hệ"
-                                message += f"⭐ **{item['name']}** - {price_formatted}\n"
-                                if item['description']:
-                                    message += f"   _{item['description']}_\n"
-                                message += "\n"
+                                dishes_list.append({
+                                    'name': item['name'],
+                                    'price': item.get('price'),
+                                    'description': item.get('description'),
+                                    'image_url': item.get('image_url'),
+                                    'preparation_time': item.get('preparation_time'),
+                                    'category': item.get('category', {}).get('name') if item.get('category') else None
+                                })
                                 
                             message += "💡 Đây là những món được đầu bếp khuyến nghị!"
                         else:
@@ -422,11 +454,14 @@ class ActionShowBestsellerDishes(Action):
                         message = "🌟 **MÓN ĐƯỢC ĐỀ XUẤT**\n\n"
                         
                         for item in featured_items[:3]:
-                            price_formatted = f"{item['price']:,.0f}đ" if item.get('price') else "Liên hệ"
-                            message += f"⭐ **{item['name']}** - {price_formatted}\n"
-                            if item['description']:
-                                message += f"   _{item['description']}_\n"
-                            message += "\n"
+                            dishes_list.append({
+                                'name': item['name'],
+                                'price': item.get('price'),
+                                'description': item.get('description'),
+                                'image_url': item.get('image_url'),
+                                'preparation_time': item.get('preparation_time'),
+                                'category': item.get('category', {}).get('name') if item.get('category') else None
+                            })
                             
                         message += "💡 Đây là những món được đầu bếp khuyến nghị!"
                     else:
@@ -443,5 +478,5 @@ class ActionShowBestsellerDishes(Action):
             message = f"❌ Có lỗi bất ngờ xảy ra khi tải món bán chạy."
             print(f"Unexpected error in ActionShowBestsellerDishes: {e}")
         
-        dispatcher.utter_message(text=message)
+        dispatcher.utter_message(text=message, custom={'dishes': dishes_list})
         return []

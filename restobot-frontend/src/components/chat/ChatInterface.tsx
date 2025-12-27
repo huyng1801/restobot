@@ -35,11 +35,22 @@ import { useNavigate } from 'react-router-dom';
 import { chatService } from '../../services/chatService';
 import { useAuth } from '../../hooks/useAuth';
 
+interface DishItem {
+  name: string;
+  price?: number;
+  description?: string;
+  image_url?: string;
+  preparation_time?: number;
+  category?: string;
+}
+
 interface Message {
   id: string;
   text: string;
   sender: 'user' | 'bot';
   timestamp: Date;
+  image?: string;
+  dishes?: DishItem[];
 }
 
 interface ConnectionStatus {
@@ -224,14 +235,41 @@ Bạn có thể sử dụng các nút bên dưới hoặc nhập trực tiếp!`
       });
       console.log('Chat response:', response);
       
-      // Thêm phản hồi từ bot
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: response.response,
-        sender: 'bot',
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, botMessage]);
+      // Xử lý response từ Rasa
+      if (response.dishes && response.dishes.length > 0) {
+        // Nếu có danh sách món ăn, hiển thị trong một message duy nhất
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: response.response,
+          sender: 'bot',
+          timestamp: new Date(),
+          dishes: response.dishes,
+        };
+        setMessages(prev => [...prev, botMessage]);
+      } else if (Array.isArray(response.messages)) {
+        // Nếu có multiple messages
+        for (const msg of response.messages) {
+          const botMessage: Message = {
+            id: (Date.now() + Math.random()).toString(),
+            text: msg.text || '',
+            sender: 'bot',
+            timestamp: new Date(),
+            image: msg.image,
+            dishes: msg.dishes,
+          };
+          setMessages(prev => [...prev, botMessage]);
+        }
+      } else {
+        // Single message response
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: response.response,
+          sender: 'bot',
+          timestamp: new Date(),
+          image: response.image,
+        };
+        setMessages(prev => [...prev, botMessage]);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       const errorMessage: Message = {
@@ -412,16 +450,122 @@ Bạn có thể sử dụng các nút bên dưới hoặc nhập trực tiếp!`
                   }}
                 >
                   <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-                    <Typography
-                      variant="body2"
-                      sx={{ 
-                        lineHeight: 1.5,
-                        whiteSpace: 'pre-line',
-                      }}
-                      dangerouslySetInnerHTML={{
-                        __html: formatMessage(message.text)
-                      }}
-                    />
+                    {message.text && (
+                      <Typography
+                        variant="body2"
+                        sx={{ 
+                          lineHeight: 1.5,
+                          whiteSpace: 'pre-line',
+                          mb: message.dishes ? 2 : 0,
+                        }}
+                        dangerouslySetInnerHTML={{
+                          __html: formatMessage(message.text)
+                        }}
+                      />
+                    )}
+                    
+                    {/* Hiển thị danh sách món ăn dạng card */}
+                    {message.dishes && message.dishes.length > 0 && (
+                      <Stack spacing={1.5} sx={{ mt: 1 }}>
+                        {message.dishes.map((dish, index) => (
+                          <Card 
+                            key={index} 
+                            variant="outlined"
+                            sx={{ 
+                              display: 'flex',
+                              flexDirection: 'row',
+                              overflow: 'hidden',
+                              '&:hover': {
+                                boxShadow: 2,
+                              },
+                            }}
+                          >
+                            {dish.image_url && (
+                              <Box
+                                sx={{
+                                  width: 120,
+                                  minWidth: 120,
+                                  height: 100,
+                                  position: 'relative',
+                                  overflow: 'hidden',
+                                }}
+                              >
+                                <img
+                                  src={dish.image_url}
+                                  alt={dish.name}
+                                  style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                  }}
+                                />
+                              </Box>
+                            )}
+                            <CardContent sx={{ flex: 1, p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                                {dish.name}
+                              </Typography>
+                              {dish.description && (
+                                <Typography 
+                                  variant="caption" 
+                                  color="text.secondary" 
+                                  sx={{ 
+                                    mb: 0.5,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: 'vertical',
+                                  }}
+                                >
+                                  {dish.description}
+                                </Typography>
+                              )}
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                                {dish.price && (
+                                  <Chip 
+                                    label={`${dish.price.toLocaleString('vi-VN')}đ`}
+                                    size="small"
+                                    color="primary"
+                                    sx={{ height: 20, fontSize: '0.7rem' }}
+                                  />
+                                )}
+                                {dish.preparation_time && (
+                                  <Chip 
+                                    label={`${dish.preparation_time} phút`}
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{ height: 20, fontSize: '0.7rem' }}
+                                  />
+                                )}
+                                {dish.category && (
+                                  <Typography variant="caption" color="text.secondary">
+                                    {dish.category}
+                                  </Typography>
+                                )}
+                              </Box>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </Stack>
+                    )}
+                    
+                    {/* Hiển thị single image nếu có */}
+                    {message.image && !message.dishes && (
+                      <Box sx={{ mb: 1 }}>
+                        <img 
+                          src={message.image} 
+                          alt="Món ăn"
+                          style={{
+                            maxWidth: '100%',
+                            maxHeight: '300px',
+                            borderRadius: '8px',
+                            objectFit: 'cover',
+                          }}
+                        />
+                      </Box>
+                    )}
+                    
                     <Typography
                       variant="caption"
                       sx={{

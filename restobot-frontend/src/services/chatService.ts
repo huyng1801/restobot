@@ -16,10 +16,30 @@ export interface RasaResponse {
   custom?: any;
 }
 
+export interface DishItem {
+  name: string;
+  price?: number;
+  description?: string;
+  image_url?: string;
+  preparation_time?: number;
+  category?: string;
+}
+
 export interface ChatResponse {
   response: string;
   recipient_id?: string;
   text?: string;
+  image?: string;
+  dishes?: DishItem[];
+  messages?: Array<{
+    text?: string;
+    image?: string;
+    dishes?: DishItem[];
+    buttons?: Array<{
+      title: string;
+      payload: string;
+    }>;
+  }>;
 }
 
 export class ChatService {
@@ -92,14 +112,27 @@ export class ChatService {
       console.log('Rasa response:', rasaResponses); // Debug log
       
       if (rasaResponses && rasaResponses.length > 0) {
-        // Lọc và ghép tất cả text responses
-        const validResponses = rasaResponses
-          .filter(r => r.text && r.text.trim().length > 0)
-          .map(r => r.text!.trim());
+        // Xử lý multiple messages (có thể bao gồm text, image, và dishes)
+        const messages = rasaResponses.map(r => ({
+          text: r.text || '',
+          image: r.image,
+          dishes: r.custom?.dishes,
+          buttons: r.buttons
+        })).filter(m => m.text || m.image || m.dishes); // Chỉ lấy messages có nội dung
+        
+        if (messages.length > 0) {
+          // Tổng hợp tất cả dishes từ các messages
+          const allDishes = messages.reduce((acc, m) => {
+            if (m.dishes) {
+              return [...acc, ...m.dishes];
+            }
+            return acc;
+          }, [] as DishItem[]);
           
-        if (validResponses.length > 0) {
           return {
-            response: validResponses.join('\n\n'),
+            response: messages.map(m => m.text).filter(t => t).join('\n\n'),
+            messages: messages,
+            dishes: allDishes.length > 0 ? allDishes : undefined,
             recipient_id: rasaResponses[0].recipient_id
           };
         }

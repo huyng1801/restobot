@@ -6,7 +6,7 @@ class ApiClient {
   private baseURL: string;
 
   constructor() {
-    this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
+    this.baseURL = process.env.REACT_APP_API_URL || 'http://103.56.160.107:8000/api/v1';
     
     this.client = axios.create({
       baseURL: this.baseURL,
@@ -79,7 +79,7 @@ class ApiClient {
   async sendMessageToBot(message: string, sessionId?: string): Promise<any> {
     try {
       // Gửi tin nhắn tới Rasa
-      const response = await axios.post('http://localhost:5005/webhooks/rest/webhook', {
+      const response = await axios.post('http://103.56.160.107:5005/webhooks/rest/webhook', {
         sender: sessionId || 'user_' + Date.now(),
         message: message
       });

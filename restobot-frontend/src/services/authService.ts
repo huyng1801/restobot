@@ -13,7 +13,7 @@ export class AuthService {
     formData.append('username', credentials.username);
     formData.append('password', credentials.password);
 
-    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}${endpoints.auth.login}`, {
+    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://103.56.160.107:8000'}${endpoints.auth.login}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',

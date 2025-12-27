@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
  * API client configuration
  */
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://103.56.160.107:8000';
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({

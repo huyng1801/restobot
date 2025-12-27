@@ -43,7 +43,7 @@ export interface ChatResponse {
 }
 
 export class ChatService {
-  private rasaUrl = process.env.REACT_APP_RASA_URL || 'http://localhost:5005';
+  private rasaUrl = process.env.REACT_APP_RASA_URL || 'http://103.56.160.107:5005';
   private sessionId = 'user_' + Math.random().toString(36).substr(2, 9);
 
   async sendMessage(message: string, userInfo?: any): Promise<ChatResponse> {

@@ -24,5 +24,3 @@ scipy==1.10.0
 # Explicitly add compatible versions to avoid conflicts
 packaging==20.9
 jsonschema==4.17.3
-
-sqlalchemy==1.4.52

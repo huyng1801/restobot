@@ -8,8 +8,8 @@ services:
       dockerfile: Dockerfile
     container_name: restobot_frontend
     environment:
-      REACT_APP_API_URL: http://localhost:8000
-      REACT_APP_CHAT_API_URL: http://localhost:5005
+      REACT_APP_API_URL: http://103.56.160.107:8000
+      REACT_APP_CHAT_API_URL: http://103.56.160.107:5005
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     depends_on:

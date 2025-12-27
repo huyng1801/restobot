@@ -11,8 +11,7 @@ from rasa_sdk.events import SlotSet
 from .auth_helper import auth_helper, get_authenticated_user_from_tracker, get_auth_headers_from_tracker
 
 # URL của FastAPI backend
-API_BASE_URL = "http://localhost:8000/api/v1"
-
+API_BASE_URL = "http://103.56.160.107:8000/api/v1"
 
 class ActionAddToOrder(Action):
     """Action để thêm món vào đơn hàng"""

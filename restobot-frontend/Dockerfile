@@ -30,9 +30,10 @@ RUN npm install -g serve
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/package.json ./
 
-# Create non-root user
-RUN addgroup -g 1000 appuser && \
-    adduser -D -u 1000 -G appuser appuser && \
+
+# Create non-root user only if not exists (avoid gid/uid conflict)
+RUN (getent group appuser || addgroup -g 1001 appuser) && \
+    (id -u appuser || adduser -D -u 1001 -G appuser appuser) && \
     chown -R appuser:appuser /app
 
 USER appuser

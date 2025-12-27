@@ -15,8 +15,8 @@ COPY src ./src
 COPY tsconfig.json .
 COPY *.json ./
 
-# Build application
-RUN npm run build
+# Build application with increased Node.js heap size
+RUN NODE_OPTIONS="--max-old-space-size=2048" npm run build
 
 # Stage 2: Runtime
 FROM node:18-alpine

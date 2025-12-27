@@ -22,5 +22,5 @@ tensorflow==2.12.0
 scipy==1.8.1
 
 # Explicitly add compatible versions to avoid conflicts
-packaging==25
+packaging==20.9
 jsonschema==4.17.3

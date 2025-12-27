@@ -4,7 +4,13 @@ from jose import jwt
 from passlib.context import CryptContext
 from app.core.config import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Use argon2 as primary scheme to avoid bcrypt version issues
+pwd_context = CryptContext(
+    schemes=["argon2", "pbkdf2_sha256"],
+    deprecated="auto",
+    argon2__rounds=4,
+    pbkdf2_sha256__rounds=260000
+)
 
 
 def create_access_token(

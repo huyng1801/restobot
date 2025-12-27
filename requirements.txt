@@ -24,4 +24,7 @@ scipy==1.10.0
 # Explicitly add compatible versions to avoid conflicts
 packaging==20.9
 jsonschema==4.17.3
+
+# Fix bcrypt compatibility
 bcrypt==4.1.2
+argon2-cffi==23.1.0

@@ -4,14 +4,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
-from app.core.database import get_db
-from app.crud.order import order as order_crud, reservation as reservation_crud
-from app.schemas.order import (
+from core.database import get_db
+from crud.order import order as order_crud, reservation as reservation_crud
+from schemas.order import (
     Order, OrderCreate, OrderUpdate, ReservationCreate, ReservationUpdate, ReservationWithDetails,
     OrderSummary, DashboardStats, PaginatedReservationResponse, PaginatedOrderResponse
 )
-from app.models.order import OrderStatus, PaymentStatus, ReservationStatus
-from app.api.deps import get_current_user, get_current_staff_user, get_current_user_optional, get_current_user_or_rasa
+from models.order import OrderStatus, PaymentStatus, ReservationStatus
+from api.deps import get_current_user, get_current_staff_user, get_current_user_optional, get_current_user_or_rasa
 
 router = APIRouter()
 
@@ -91,7 +91,7 @@ def create_reservation(
         reservation_in.customer_id = current_user.id
     
     # Check if table exists and has sufficient capacity
-    from app.crud.table import table as table_crud
+    from crud.table import table as table_crud
     table = table_crud.get(db, id=reservation_in.table_id)
     if not table:
         raise HTTPException(status_code=400, detail="Table not found")
@@ -142,7 +142,7 @@ def read_reservation(
         raise HTTPException(status_code=404, detail="Reservation not found")
     
     # Users can only see their own reservations unless they are staff+
-    from app.models.user import UserRole
+    from models.user import UserRole
     if (current_user.role == UserRole.customer and 
         reservation_details["customer_id"] != current_user.id):
         raise HTTPException(status_code=403, detail="Not enough permissions")
@@ -166,7 +166,7 @@ def update_reservation(
         raise HTTPException(status_code=404, detail="Reservation not found")
     
     # Users can only modify their own reservations unless they are staff+
-    from app.models.user import UserRole
+    from models.user import UserRole
     if (current_user.role == UserRole.customer and 
         reservation.customer_id != current_user.id):
         raise HTTPException(status_code=403, detail="Not enough permissions")
@@ -199,13 +199,13 @@ def cancel_reservation(
         raise HTTPException(status_code=404, detail="Reservation not found")
     
     # Users can only cancel their own reservations unless they are staff+
-    from app.models.user import UserRole
+    from models.user import UserRole
     if (current_user.role == UserRole.customer and 
         reservation.customer_id != current_user.id):
         raise HTTPException(status_code=403, detail="Not enough permissions")
     
     # Update status to cancelled instead of deleting
-    from app.schemas.order import ReservationUpdate
+    from schemas.order import ReservationUpdate
     reservation_update = ReservationUpdate(status=ReservationStatus.cancelled)
     reservation = reservation_crud.update(db, db_obj=reservation, obj_in=reservation_update)
     
@@ -226,7 +226,7 @@ def update_reservation_status(
     """
     Update reservation status (Staff+ only).
     """
-    from app.schemas.order import ReservationUpdate
+    from schemas.order import ReservationUpdate
     
     reservation = reservation_crud.get(db, id=reservation_id)
     if not reservation:
@@ -319,7 +319,7 @@ def create_order(
         print(f"🔍 Debug: Order items: {order_in.order_items}")
         
         # Validate that all menu items exist and are available
-        from app.crud.menu import menu_item as menu_item_crud
+        from crud.menu import menu_item as menu_item_crud
         for item in order_in.order_items:
             # Handle both dict and object formats
             menu_item_id = item.get('menu_item_id') if isinstance(item, dict) else item.menu_item_id
@@ -373,7 +373,7 @@ def read_order(
         raise HTTPException(status_code=404, detail="Order not found")
     
     # Users can only see their own orders unless they are staff+
-    from app.models.user import UserRole
+    from models.user import UserRole
     if (current_user.role == UserRole.customer and 
         order.customer_id != current_user.id):
         raise HTTPException(status_code=403, detail="Not enough permissions")
@@ -409,7 +409,7 @@ def update_order_status(
     """
     Update order status (Staff+ only).
     """
-    from app.schemas.order import OrderUpdate
+    from schemas.order import OrderUpdate
     
     order = order_crud.get(db, id=order_id)
     if not order:
@@ -481,8 +481,8 @@ def get_bestseller_dishes(
     """
     Get bestseller dishes based on order quantity in the specified period.
     """
-    from app.models.order import OrderItem, Order as OrderModel
-    from app.models.menu import MenuItem
+    from models.order import OrderItem, Order as OrderModel
+    from models.menu import MenuItem
     
     # Calculate date range
     end_date = datetime.now()
@@ -531,8 +531,8 @@ def add_item_to_order(
     Add item to existing order.
     """
     try:
-        from app.models.order import OrderItem
-        from app.crud.menu import menu_item as menu_item_crud
+        from models.order import OrderItem
+        from crud.menu import menu_item as menu_item_crud
         
         print(f"🔍 Debug: Add item to order - order_id={order_id}")
         print(f"🔍 Debug: Item data: {item_data}")
@@ -547,7 +547,7 @@ def add_item_to_order(
         print(f"✅ Order found: {order.order_number}, customer_id={order.customer_id}")
         
         # Users can only modify their own orders unless they are staff+
-        from app.models.user import UserRole
+        from models.user import UserRole
         if (current_user and current_user.role == UserRole.customer and 
             order.customer_id != current_user.id):
             print(f"❌ Permission denied: user {current_user.id} cannot modify order of customer {order.customer_id}")

@@ -2,9 +2,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, and_
 from typing import Optional, List
 from datetime import datetime, date
-from app.models.order import Order, OrderItem, Reservation, OrderStatus, PaymentStatus, ReservationStatus
-from app.models.menu import MenuItem
-from app.schemas.order import (
+from models.order import Order, OrderItem, Reservation, OrderStatus, PaymentStatus, ReservationStatus
+from models.menu import MenuItem
+from schemas.order import (
     OrderCreate, OrderUpdate, 
     ReservationCreate, ReservationUpdate, OrderSummary
 )
@@ -86,8 +86,8 @@ class CRUDReservation:
         date_filter: Optional[date] = None
     ) -> List[dict]:
         """Get reservations with customer and table details"""
-        from app.models.user import User
-        from app.models.table import Table
+        from models.user import User
+        from models.table import Table
         
         # Build base query with joins
         query = db.query(
@@ -143,8 +143,8 @@ class CRUDReservation:
         date_filter: Optional[date] = None
     ) -> int:
         """Get count of reservations with filters applied"""
-        from app.models.user import User
-        from app.models.table import Table
+        from models.user import User
+        from models.table import Table
         
         query = db.query(Reservation)\
             .outerjoin(User, Reservation.customer_id == User.id)\
@@ -166,8 +166,8 @@ class CRUDReservation:
         limit: int = 100
     ) -> List[dict]:
         """Get user's reservations with customer and table details"""
-        from app.models.user import User
-        from app.models.table import Table
+        from models.user import User
+        from models.table import Table
         
         # Build base query with joins and filter by customer
         query = db.query(
@@ -213,8 +213,8 @@ class CRUDReservation:
 
     def get_with_details(self, db: Session, reservation_id: int) -> Optional[dict]:
         """Get single reservation with full details"""
-        from app.models.user import User
-        from app.models.table import Table
+        from models.user import User
+        from models.table import Table
         
         # Get reservation with customer and table info
         result = db.query(
@@ -312,8 +312,8 @@ class CRUDOrder:
         search: Optional[str] = None
     ) -> List[dict]:
         """Get orders with customer and table details"""
-        from app.models.user import User
-        from app.models.table import Table
+        from models.user import User
+        from models.table import Table
         
         # Build base query with joins
         query = db.query(
@@ -374,8 +374,8 @@ class CRUDOrder:
         search: Optional[str] = None
     ) -> int:
         """Get count of orders with filters applied"""
-        from app.models.user import User
-        from app.models.table import Table
+        from models.user import User
+        from models.table import Table
         
         # Build base query with joins
         query = db.query(Order)\
@@ -481,8 +481,8 @@ class CRUDOrder:
 
     def get_with_details(self, db: Session, order_id: int) -> Optional[dict]:
         """Get single order with full details including order items"""
-        from app.models.user import User
-        from app.models.table import Table
+        from models.user import User
+        from models.table import Table
         
         # Get order with customer and table info
         result = db.query(
@@ -542,9 +542,9 @@ class CRUDOrder:
 
     def get_dashboard_stats(self, db: Session) -> dict:
         """Get comprehensive dashboard statistics"""
-        from app.models.user import User
-        from app.models.table import Table
-        from app.models.menu import MenuItem
+        from models.user import User
+        from models.table import Table
+        from models.menu import MenuItem
         
         today = date.today()
         
@@ -561,14 +561,14 @@ class CRUDOrder:
         total_revenue = float(revenue_result) if revenue_result else 0.0
         
         # Table statistics
-        from app.models.table import TableStatus
+        from models.table import TableStatus
         total_tables = db.query(Table).count()
         available_tables = db.query(Table).filter(Table.status == TableStatus.available).count()
         occupied_tables = db.query(Table).filter(Table.status == TableStatus.occupied).count()
         reserved_tables = db.query(Table).filter(Table.status == TableStatus.reserved).count()
         
         # User statistics
-        from app.models.user import UserRole
+        from models.user import UserRole
         total_customers = db.query(User).filter(User.role == UserRole.customer).count()
         total_staff = db.query(User).filter(User.role.in_([UserRole.staff, UserRole.manager, UserRole.admin])).count()
         

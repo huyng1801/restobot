@@ -2,13 +2,13 @@ from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from app.core.database import get_db
-from app.crud.menu import category as category_crud, menu_item as menu_item_crud
-from app.schemas.menu import (
+from core.database import get_db
+from crud.menu import category as category_crud, menu_item as menu_item_crud
+from schemas.menu import (
     Category, CategoryCreate, CategoryUpdate, CategoryWithItems,
     MenuItem, MenuItemCreate, MenuItemUpdate, PaginatedMenuResponse, PaginatedCategoryResponse
 )
-from app.api.deps import get_current_staff_user, get_current_user_optional
+from api.deps import get_current_staff_user, get_current_user_optional
 
 router = APIRouter()
 

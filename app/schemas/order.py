@@ -2,7 +2,7 @@ from __future__ import annotations
 from pydantic import BaseModel, validator
 from typing import Optional, List, Any
 from datetime import datetime
-from app.models.order import ReservationStatus, OrderStatus, PaymentStatus
+from models.order import ReservationStatus, OrderStatus, PaymentStatus
 
 
 # Reservation Schemas

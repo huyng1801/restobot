@@ -1,2 +1,2 @@
 # Import all models to make them available
-from app.models import *
+from models import *

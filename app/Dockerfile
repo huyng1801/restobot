@@ -3,6 +3,9 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
+# Set Python path for imports
+ENV PYTHONPATH=/app
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \

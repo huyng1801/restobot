@@ -41,7 +41,7 @@ services:
   # FastAPI Backend
   api:
     build:
-      context: .
+      context: ./app
       dockerfile: Dockerfile
     container_name: restobot_api
     environment:
@@ -57,56 +57,42 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - ./app:/app/app
-      - ./rasa_bot:/app/rasa_bot
     networks:
       - restobot_network
-    command: >
-      sh -c "python migrate.py --fresh &&
-             uvicorn app.main:app --host 0.0.0.0 --port 8000"
     restart: unless-stopped
 
   # Rasa Actions Server
   rasa-actions:
     build:
-      context: .
-      dockerfile: Dockerfile.rasa
+      context: ./rasa_bot
+      dockerfile: Dockerfile
     container_name: restobot_rasa_actions
     environment:
       PYTHONUNBUFFERED: 1
       PYDANTIC_V1: 1
     ports:
       - "${RASA_ACTIONS_PORT:-5055}:5055"
-    volumes:
-      - ./rasa_bot:/app/rasa_bot
-      - ./app:/app/app
     networks:
       - restobot_network
     restart: unless-stopped
-    working_dir: /app/rasa_bot
     command: rasa run actions --port 5055
 
   # Rasa Bot Server
   rasa:
     build:
-      context: .
-      dockerfile: Dockerfile.rasa
+      context: ./rasa_bot
+      dockerfile: Dockerfile
     container_name: restobot_rasa
     environment:
       PYTHONUNBUFFERED: 1
       PYDANTIC_V1: 1
     ports:
       - "${RASA_PORT:-5005}:5005"
-    volumes:
-      - ./rasa_bot:/app/rasa_bot
-      - ./app:/app/app
     networks:
       - restobot_network
     depends_on:
       - rasa-actions
     restart: unless-stopped
-    working_dir: /app/rasa_bot
     command: rasa run --port 5005 --enable-api --cors "*"
 
   # Nginx Reverse Proxy (Optional but recommended for production)

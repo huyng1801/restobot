@@ -1,5 +1,4 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
-import { LoginResponse } from '../types';
 
 class ApiClient {
   private client: AxiosInstance;

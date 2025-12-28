@@ -45,7 +45,7 @@ def create_database_tables():
         
         # Import seed_data and run seeding
         sys.path.append('/app')
-        from ..seed_data import seed_database
+        from seed_data import seed_database
         
         # Get database session and seed data
         session = sessionmaker(bind=engine)()

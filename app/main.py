@@ -41,6 +41,16 @@ async def health_check():
     return {"status": "healthy", "service": "RestoBot API"}
 
 
+@app.post("/webhook")
+async def rasa_webhook(data: dict):
+    """Webhook endpoint for Rasa actions"""
+    return {
+        "status": "received",
+        "data": data,
+        "message": "Webhook processed successfully"
+    }
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(

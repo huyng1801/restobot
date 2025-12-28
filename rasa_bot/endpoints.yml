@@ -3,4 +3,4 @@ rest:
   url: "http://103.56.160.107:5005/webhooks/rest/webhook"
 
 action_endpoint:
-  url: "http://103.56.160.107:5055/webhook"
+  url: "http://api:8000/webhook"

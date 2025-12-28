@@ -124,8 +124,8 @@ class RestoBot:
         
         try:
             app = self.create_fastapi_app()
-            print("📍 FastAPI URL: http://localhost:8000")
-            print("📍 API Docs: http://localhost:8000/docs")
+            print("📍 FastAPI URL: http://103.56.160.107:8000")
+            print("📍 API Docs: http://103.56.160.107:8000/docs")
             print("📍 Real API Endpoints:")
             print("   • /api/v1/auth/ - Authentication endpoints")
             print("   • /api/v1/users/ - User management")  
@@ -199,7 +199,7 @@ class RestoBot:
             # Kiểm tra process còn sống không
             if process.poll() is None:
                 print("✅ Rasa server started (Port 5005)")
-                print("📍 Rasa API: http://localhost:5005")
+                print("📍 Rasa API: http://103.56.160.107:5005")
             else:
                 print("❌ Rasa server đã crash ngay sau khi start")
                 return
@@ -219,14 +219,14 @@ class RestoBot:
         # Test FastAPI
         try:
             import requests
-            response = requests.get("http://localhost:8000/health", timeout=5)
+            response = requests.get("http://103.56.160.107:8000/health", timeout=5)
             if response.status_code == 200:
                 print("✅ FastAPI: Hoạt động bình thường")
                 
                 # Test API endpoints
                 try:
                     # Test menu API
-                    menu_response = requests.get("http://localhost:8000/api/v1/menu/categories", timeout=5)
+                    menu_response = requests.get("http://103.56.160.107:8000/api/v1/menu/categories", timeout=5)
                     if menu_response.status_code == 200:
                         print("✅ Menu API: Ready")      
                         
@@ -243,13 +243,13 @@ class RestoBot:
         for attempt in range(3):
             try:
                 # Test Rasa status endpoint trước
-                status_response = requests.get("http://localhost:5005/status", timeout=10)
+                status_response = requests.get("http://103.56.160.107:5005/status", timeout=10)
                 if status_response.status_code == 200:
                     print("✅ Rasa: Hoạt động bình thường")
                     
                     # Test parse endpoint
                     parse_response = requests.post(
-                        "http://localhost:5005/model/parse",
+                        "http://103.56.160.107:5005/model/parse",
                         json={"text": "xin chào"},
                         timeout=10
                     )

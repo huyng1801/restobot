@@ -5,16 +5,15 @@ Run migrations for API service in Docker environment
 """
 import sys
 import os
+
+# Ensure /app is in path
+sys.path.insert(0, '/app')
+os.chdir('/app')
+
 import logging
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import OperationalError
-
-# Add app directory to path for imports
-app_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, app_dir)
-if '/app' not in sys.path:
-    sys.path.insert(0, '/app')
 
 from core.database import Base, get_db, engine
 from models.user import User

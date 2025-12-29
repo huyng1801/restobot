@@ -2,24 +2,34 @@
 """
 🍽️ RestoBot API - Database Migration Script
 Run migrations for API service in Docker environment
+Run with: python -c "import sys; sys.path.insert(0, '/app'); exec(open('migrate.py').read())"
+Or: python migrate.py from /app directory
 """
 import sys
 import os
+import logging
 
-# Ensure /app is in path
-sys.path.insert(0, '/app')
+# Setup path
+if '/app' not in sys.path:
+    sys.path.insert(0, '/app')
 os.chdir('/app')
 
-import logging
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import OperationalError
 
-from core.database import Base, get_db, engine
-from models.user import User
-from models.menu import Category, MenuItem  
-from models.table import Table
-from models.order import Order, OrderItem, Reservation
+try:
+    from core.database import Base, engine
+    from models.user import User
+    from models.menu import Category, MenuItem  
+    from models.table import Table
+    from models.order import Order, OrderItem, Reservation
+    from seed_data import seed_database
+except ImportError as e:
+    print(f"Import error: {e}")
+    print(f"sys.path: {sys.path}")
+    print(f"Current dir: {os.getcwd()}")
+    raise
 
 # Setup logging
 logging.basicConfig(

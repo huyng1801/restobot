@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from typing import Optional, List
-from models.menu import Category, MenuItem
-from schemas.menu import CategoryCreate, CategoryUpdate, MenuItemCreate, MenuItemUpdate
+from ..models.menu import Category, MenuItem
+from ..schemas.menu import CategoryCreate, CategoryUpdate, MenuItemCreate, MenuItemUpdate
 
 
 class CRUDCategory:

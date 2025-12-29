@@ -4,14 +4,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
-from core.database import get_db
-from crud.order import order as order_crud, reservation as reservation_crud
-from schemas.order import (
+from ..core.database import get_db
+from ..crud.order import order as order_crud, reservation as reservation_crud
+from ..schemas.order import (
     Order, OrderCreate, OrderUpdate, ReservationCreate, ReservationUpdate, ReservationWithDetails,
     OrderSummary, DashboardStats, PaginatedReservationResponse, PaginatedOrderResponse
 )
-from models.order import OrderStatus, PaymentStatus, ReservationStatus
-from api.deps import get_current_user, get_current_staff_user, get_current_user_optional, get_current_user_or_rasa
+from ..models.order import OrderStatus, PaymentStatus, ReservationStatus
+from ..api.deps import get_current_user, get_current_staff_user, get_current_user_optional, get_current_user_or_rasa
 
 router = APIRouter()
 

@@ -1,2 +1,2 @@
-# Import all models to make them available
-from models import *
+# App package initialization
+from .models import *

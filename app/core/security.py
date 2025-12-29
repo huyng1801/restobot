@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import Any, Union, Optional
 from jose import jwt
 from passlib.context import CryptContext
-from core.config import settings
+from .config import settings
 
 # Use argon2 as primary scheme to avoid bcrypt version issues
 pwd_context = CryptContext(

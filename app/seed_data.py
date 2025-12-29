@@ -5,11 +5,11 @@ Dữ liệu mẫu cho API service
 """
 
 from sqlalchemy.orm import Session
-from models.user import User, UserRole
-from models.menu import Category, MenuItem
-from models.table import Table, TableStatus
-from models.order import Order, OrderItem, Reservation, OrderStatus, PaymentStatus, ReservationStatus
-from core.security import get_password_hash
+from .models.user import User, UserRole
+from .models.menu import Category, MenuItem
+from .models.table import Table, TableStatus
+from .models.order import Order, OrderItem, Reservation, OrderStatus, PaymentStatus, ReservationStatus
+from .core.security import get_password_hash
 from datetime import datetime, timedelta
 import logging
 

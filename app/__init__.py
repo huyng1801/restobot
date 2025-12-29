@@ -1,2 +1,2 @@
 # App package initialization
-from .models import *
+from models import *

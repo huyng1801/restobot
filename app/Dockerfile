@@ -17,11 +17,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip install --upgrade pip
 
 # Copy requirements and install Python dependencies
-COPY requirements.txt /app/
+COPY app/requirements.txt /app/
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Copy application code (copy toàn bộ context vào /app)
-COPY . /app/
+# Copy application code
+COPY app/ /app/
 
 # Create non-root user for security
 RUN useradd -m -u 1000 appuser && \

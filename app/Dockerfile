@@ -20,8 +20,8 @@ RUN pip install --upgrade pip
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Copy application code (chỉ copy app/ vào /app)
-COPY app/ /app/
+# Copy application code (copy toàn bộ context vào /app)
+COPY . /app/
 
 # Create non-root user for security
 RUN useradd -m -u 1000 appuser && \

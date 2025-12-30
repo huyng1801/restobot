@@ -1,9 +1,9 @@
 # FastAPI Backend Dockerfile
 FROM python:3.9-slim
 
-WORKDIR /
+WORKDIR /app
 
-# Set Python path for imports (trùng với WORKDIR)
+# Set Python path for imports
 ENV PYTHONPATH=/
 
 # Install system dependencies
@@ -17,18 +17,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip install --upgrade pip
 
 # Copy requirements and install Python dependencies
-COPY requirements.txt ./app/
-RUN pip install --no-cache-dir -r ./app/requirements.txt
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Copy application code
-COPY . ./app/
+# Copy application code (chỉ copy app/ vào /app)
+COPY app/ /app/
 
 # Create non-root user for security
 RUN useradd -m -u 1000 appuser && \
     chown -R appuser:appuser /app
 USER appuser
 
-WORKDIR /
+WORKDIR /app
 
 # Expose port
 EXPOSE 8000

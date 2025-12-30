@@ -2,11 +2,11 @@ from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from ...core.database import get_db
-from ...crud.table import table as table_crud
-from ...schemas.table import Table, TableCreate, TableUpdate, TableStatusUpdate
-from ...models.table import TableStatus
-from ...api.deps import get_current_staff_user, get_current_user_optional
+from app.core.database import get_db
+from app.crud.table import table as table_crud
+from app.schemas.table import Table, TableCreate, TableUpdate, TableStatusUpdate
+from app.models.table import TableStatus
+from app.api.deps import get_current_staff_user, get_current_user_optional
 from pydantic import BaseModel
 
 router = APIRouter()

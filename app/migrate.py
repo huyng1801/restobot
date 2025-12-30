@@ -19,12 +19,12 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import OperationalError
 
 try:
-    from core.database import Base, engine
-    from models.user import User
-    from models.menu import Category, MenuItem  
-    from models.table import Table
-    from models.order import Order, OrderItem, Reservation
-    from seed_data import seed_database
+    from app.core.database import Base, engine
+    from app.models.user import User
+    from app.models.menu import Category, MenuItem  
+    from app.models.table import Table
+    from app.models.order import Order, OrderItem, Reservation
+    from app.seed_data import seed_database
 except ImportError as e:
     print(f"Import error: {e}")
     print(f"sys.path: {sys.path}")
@@ -57,7 +57,7 @@ def create_database_tables():
         
         # Import seed_data and run seeding
         sys.path.append('/app')
-        from seed_data import seed_database
+        from app.seed_data import seed_database
         
         # Get database session and seed data
         session = sessionmaker(bind=engine)()

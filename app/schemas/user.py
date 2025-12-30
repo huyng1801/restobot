@@ -2,7 +2,7 @@ from __future__ import annotations
 from pydantic import BaseModel, EmailStr, validator
 from typing import Optional
 from datetime import datetime
-from ..models.user import UserRole
+from app.models.user import UserRole
 
 
 class UserBase(BaseModel):

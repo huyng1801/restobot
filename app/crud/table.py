@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from typing import Optional, List
-from ..models.table import Table, TableStatus
-from ..schemas.table import TableCreate, TableUpdate
+from app.models.table import Table, TableStatus
+from app.schemas.table import TableCreate, TableUpdate
 
 
 class CRUDTable:

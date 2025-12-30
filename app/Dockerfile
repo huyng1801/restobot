@@ -3,8 +3,8 @@ FROM python:3.9-slim
 
 WORKDIR /
 
-# Set Python path for imports
-ENV PYTHONPATH=/
+# Set Python path for imports (trùng với WORKDIR)
+ENV PYTHONPATH=/app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -38,4 +38,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:8000/health')" || exit 1
 
 # Run import tests first, then start FastAPI
-CMD ["sh", "-c", "python -m app.test_imports && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+CMD python3 -m app.test_imports && uvicorn app.main:app --host 0.0.0.0 --port 8000

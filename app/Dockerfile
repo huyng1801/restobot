@@ -4,7 +4,7 @@ FROM python:3.9-slim
 WORKDIR /
 
 # Set Python path for imports (trùng với WORKDIR)
-ENV PYTHONPATH=/app
+ENV PYTHONPATH=/
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -28,7 +28,7 @@ RUN useradd -m -u 1000 appuser && \
     chown -R appuser:appuser /app
 USER appuser
 
-WORKDIR /app
+WORKDIR /
 
 # Expose port
 EXPOSE 8000

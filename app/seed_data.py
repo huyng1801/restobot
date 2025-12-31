@@ -99,7 +99,7 @@ def create_tables(db: Session):
             "table_number": i,
             "capacity": capacity,
             "location": "Tầng 1",
-            "status": TableStatus.AVAILABLE,
+            "status": TableStatus.available,
             "description": f"Bàn {i} tầng 1 - {capacity} chỗ ngồi"
         })
     
@@ -109,7 +109,7 @@ def create_tables(db: Session):
             "table_number": i,
             "capacity": 8,
             "location": "Tầng 2 - VIP",
-            "status": TableStatus.AVAILABLE,
+            "status": TableStatus.available,
             "description": f"Bàn VIP {i} tầng 2 - 8 chỗ ngồi, view đẹp"
         })
     

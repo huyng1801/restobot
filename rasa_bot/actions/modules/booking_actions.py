@@ -12,8 +12,8 @@ from rasa_sdk.events import SlotSet
 
 from .auth_helper import auth_helper, get_authenticated_user_from_tracker, get_auth_headers_from_tracker
 
-# URL của FastAPI backend
-API_BASE_URL = "http://103.56.160.107:8000/api/v1"
+# URL của FastAPI backend (dùng Docker internal network)
+API_BASE_URL = "http://api:8000/api/v1"
 
 
 class ActionAskTableBookingInfo(Action):

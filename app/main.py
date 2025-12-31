@@ -20,8 +20,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Include API router
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+# Run migration on startup
+import subprocess
+@app.on_event("startup")
+def run_migrations():
+    try:
+        result = subprocess.run(["python", "migrate.py"], cwd="/app", capture_output=True, text=True)
+        if result.returncode == 0:
+            print("[Startup] Database migration completed.")
+        else:
+            print(f"[Startup] Migration failed: {result.stderr}")
+    except Exception as e:
+        print(f"[Startup] Migration error: {e}")
 
 
 @app.get("/")

@@ -96,21 +96,19 @@ def create_tables(db: Session):
     for i in range(1, 11):
         capacity = 4 if i <= 6 else 6  # Bàn 1-6 có 4 chỗ, bàn 7-10 có 6 chỗ
         tables_data.append({
-            "table_number": i,
+            "table_number": str(i),
             "capacity": capacity,
             "location": "Tầng 1",
-            "status": TableStatus.available,
-            "description": f"Bàn {i} tầng 1 - {capacity} chỗ ngồi"
+            "status": TableStatus.available
         })
     
     # Bàn tầng 2 - VIP (11-15)
     for i in range(11, 16):
         tables_data.append({
-            "table_number": i,
+            "table_number": str(i),
             "capacity": 8,
             "location": "Tầng 2 - VIP",
-            "status": TableStatus.available,
-            "description": f"Bàn VIP {i} tầng 2 - 8 chỗ ngồi, view đẹp"
+            "status": TableStatus.available
         })
     
     tables = []

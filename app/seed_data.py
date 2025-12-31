@@ -131,7 +131,7 @@ def create_users(db: Session):
             "username": "admin",
             "full_name": "Quản lý hệ thống",
             "hashed_password": get_password_hash("admin123"),
-            "role": UserRole.ADMIN,
+            "role": UserRole.admin,
             "phone": "0901234567",
             "is_active": True
         },
@@ -140,7 +140,7 @@ def create_users(db: Session):
             "username": "staff",
             "full_name": "Nhân viên phục vụ",
             "hashed_password": get_password_hash("staff123"),
-            "role": UserRole.STAFF,
+            "role": UserRole.staff,
             "phone": "0901234568",
             "is_active": True
         },
@@ -149,7 +149,7 @@ def create_users(db: Session):
             "username": "customer",
             "full_name": "Khách hàng mẫu",
             "hashed_password": get_password_hash("customer123"),
-            "role": UserRole.CUSTOMER,
+            "role": UserRole.customer,
             "phone": "0901234569",
             "is_active": True
         },
@@ -158,7 +158,7 @@ def create_users(db: Session):
             "username": "nguyenvan",
             "full_name": "Nguyễn Văn A",
             "hashed_password": get_password_hash("password123"),
-            "role": UserRole.CUSTOMER,
+            "role": UserRole.customer,
             "phone": "0987654321",
             "is_active": True
         }

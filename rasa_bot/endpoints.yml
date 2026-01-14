@@ -1,0 +1,9 @@
+rest:
+  url: "http://rasa:5005/webhooks/rest/webhook"
+
+action_endpoint:
+  url: "http://rasa-actions:5055/webhook"
+
+# Tracker store for conversation history
+tracker_store:
+  type: InMemoryTrackerStore

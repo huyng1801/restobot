@@ -1,0 +1,119 @@
+version: '3.8'
+
+services:
+  # React Frontend
+  frontend:
+    build:
+      context: ./restobot-frontend
+      dockerfile: Dockerfile
+    container_name: restobot_frontend
+    environment:
+      REACT_APP_API_URL: http://localhost:8000
+      REACT_APP_CHAT_API_URL: http://localhost:5005
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      - api
+    networks:
+      - restobot_network
+    restart: unless-stopped
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: restobot_postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: ${DB_NAME:-restobot_db}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - restobot_network
+
+  # FastAPI Backend
+  api:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    container_name: restobot_api
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-password}@postgres:5432/${DB_NAME:-restobot_db}
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      ALGORITHM: ${ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      DEBUG: ${DEBUG:-false}
+      HOST: 0.0.0.0
+      PORT: 8000
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - restobot_network
+    restart: unless-stopped
+
+  # Rasa Actions Server
+  rasa-actions:
+    build:
+      context: ./rasa_bot
+      dockerfile: Dockerfile
+    container_name: restobot_rasa_actions
+    environment:
+      PYTHONUNBUFFERED: 1
+      PYDANTIC_V1: 1
+    ports:
+      - "${RASA_ACTIONS_PORT:-5055}:5055"
+    networks:
+      - restobot_network
+    restart: unless-stopped
+    command: rasa run actions --port 5055
+
+  # Rasa Bot Server
+  rasa:
+    build:
+      context: ./rasa_bot
+      dockerfile: Dockerfile
+    container_name: restobot_rasa
+    environment:
+      PYTHONUNBUFFERED: 1
+      PYDANTIC_V1: 1
+    ports:
+      - "${RASA_PORT:-5005}:5005"
+    networks:
+      - restobot_network
+    depends_on:
+      - rasa-actions
+    restart: unless-stopped
+    command: rasa run --port 5005 --enable-api --cors "*"
+
+  # Nginx Reverse Proxy (Optional but recommended for production)
+  nginx:
+    image: nginx:alpine
+    container_name: restobot_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - api
+    networks:
+      - restobot_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  restobot_network:
+    driver: bridge

@@ -1,0 +1,199 @@
+version: "3.1"
+
+rules:
+
+# ===== BASIC RULES =====
+- rule: Say hello anytime the user says hello
+  steps:
+  - intent: greet
+  - action: utter_greet
+
+- rule: Say goodbye anytime the user says goodbye
+  steps:
+  - intent: goodbye
+  - action: utter_goodbye
+
+- rule: Say I am a bot when challenged
+  steps:
+  - intent: bot_challenge
+  - action: utter_iamabot
+
+# ===== MENU & DISHES RULES =====
+- rule: Show menu
+  steps:
+  - intent: view_menu
+  - action: action_show_menu
+
+- rule: Show menu categories
+  steps:
+  - intent: ask_menu_categories
+  - action: action_show_menu
+
+- rule: Show featured dishes
+  steps:
+  - intent: ask_featured_dishes
+  - action: action_show_bestseller_dishes
+
+- rule: Show popular dishes
+  steps:
+  - intent: ask_popular_dishes
+  - action: action_show_popular_dishes
+
+- rule: Show special dishes
+  steps:
+  - intent: ask_special_dishes
+  - action: action_show_special_dishes
+
+- rule: Recommend dishes
+  steps:
+  - intent: recommend_dishes
+  - action: action_recommend_dishes
+
+- rule: Show dish details
+  steps:
+  - intent: ask_dish_details
+  - action: action_ask_dish_details
+
+- rule: Show dish price
+  steps:
+  - intent: ask_dish_price
+  - action: action_ask_dish_price
+
+# ===== BOOKING RULES =====
+- rule: Book table
+  steps:
+  - intent: book_table
+  - action: action_book_table
+
+- rule: Confirm booking
+  steps:
+  - intent: confirm_booking
+  - action: action_confirm_booking
+
+- rule: Modify booking
+  steps:
+  - intent: modify_booking
+  - action: action_modify_booking
+
+- rule: Cancel reservation
+  steps:
+  - intent: cancel_reservation
+  - action: action_cancel_reservation
+
+- rule: Check available tables
+  steps:
+  - intent: ask_available_tables
+  - action: action_show_available_tables
+
+# ===== ORDERING RULES =====
+- rule: Order food
+  steps:
+  - intent: order_food
+  - action: action_add_to_order
+
+- rule: Add to order
+  steps:
+  - intent: add_to_order
+  - action: action_add_to_order
+
+- rule: View current order
+  steps:
+  - intent: view_current_order
+  - action: action_show_current_order
+
+- rule: Modify order
+  steps:
+  - intent: modify_order
+  - action: action_modify_order
+
+- rule: Confirm order
+  steps:
+  - intent: confirm_order
+  - action: action_confirm_order
+
+- rule: Cancel order
+  steps:
+  - intent: cancel_order
+  - action: action_cancel_order
+
+# ===== RESTAURANT INFO RULES =====
+- rule: Show opening hours
+  steps:
+  - intent: ask_opening_hours
+  - action: action_show_opening_hours
+
+- rule: Show address
+  steps:
+  - intent: ask_address
+  - action: action_show_address
+
+- rule: Show contact info
+  steps:
+  - intent: ask_contact
+  - action: action_show_contact
+
+- rule: Show promotions
+  steps:
+  - intent: ask_promotions
+  - action: action_show_promotions
+
+# ===== CONVERSATION MANAGEMENT RULES =====
+- rule: Handle contextual questions
+  steps:
+  - intent: contextual_question
+  - action: action_conversation_manager
+
+- rule: Handle order item references  
+  steps:
+  - intent: order_item_reference
+  - action: action_conversation_manager
+
+- rule: Handle specific field modifications
+  steps:
+  - intent: modify_specific_field
+  - action: action_modify_booking
+
+# ===== AFFIRMATION/DENIAL RULES =====
+- rule: Confirm dish selection
+  steps:
+  - action: action_add_to_order
+  - intent: affirm
+  - action: action_confirm_order_item
+
+- rule: Select dish by number
+  steps:
+  - action: action_add_to_order
+  - intent: order_item_reference
+  - action: action_select_dish_by_number
+
+- rule: Handle deny request
+  steps:
+  - intent: deny
+  - action: utter_deny_request
+
+# ===== FALLBACK RULES =====
+- rule: Fallback rule
+  steps:
+  - intent: nlu_fallback
+  - action: utter_default
+
+# ===== PAYMENT RULES =====
+- rule: Initiate payment process
+  steps:
+  - intent: request_payment
+  - action: action_initiate_payment
+
+- rule: Process payment method
+  steps:
+  - intent: process_payment
+  - action: action_process_payment
+
+- rule: Check payment status
+  steps:
+  - intent: check_payment_status
+  - action: action_check_payment_status
+
+- rule: Show payment methods
+  steps:
+  - intent: select_payment_method
+  - action: action_initiate_payment

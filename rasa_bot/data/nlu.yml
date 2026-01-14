@@ -1,0 +1,583 @@
+version: "3.1"
+
+nlu:
+
+# ===== GREETING & GOODBYE =====
+- intent: greet
+  examples: |
+    - xin chào
+    - chào bạn
+    - chào
+    - xin chào nhà hàng
+    - tôi muốn được hỗ trợ
+    - bạn có thể giúp tôi không
+    - hello
+    - hi
+
+- intent: goodbye
+  examples: |
+    - tạm biệt
+    - chào tạm biệt
+    - bye
+    - hẹn gặp lại
+    - cảm ơn bạn
+    - tôi sẽ quay lại sau
+    - goodbye
+
+# ===== CONFIRMATION & DENIAL =====
+- intent: affirm
+  examples: |
+    - có
+    - đúng
+    - được
+    - ok
+    - đồng ý
+    - xác nhận
+    - tôi đồng ý
+    - chính xác
+    - yes
+    - vâng
+    - ừ
+
+- intent: deny
+  examples: |
+    - không
+    - không phải
+    - sai rồi
+    - không đúng
+    - hủy bỏ
+    - tôi không muốn
+    - no
+    - không đồng ý
+    - không được
+
+# ===== MENU & DISHES =====
+- intent: view_menu
+  examples: |
+    - cho tôi xem thực đơn
+    - xem menu
+    - xem thực đơn
+    - thực đơn
+    - menu
+    - có những món gì
+    - có món gì
+    - món gì
+    - có món gì ở đây
+    - có những món ăn gì
+    - bạn có các món nào
+    - danh sách món ăn
+    - show menu
+    - menu là gì
+    - cho xem menu
+    - tôi muốn xem thực đơn
+
+- intent: ask_menu_categories
+  examples: |
+    - các loại món ăn
+    - chia theo danh mục
+    - phân loại menu
+    - có những danh mục nào
+    - menu có bao nhiêu phần
+    - món khai vị
+    - món chính
+    - tráng miệng
+    - đồ uống
+    - categories
+
+- intent: ask_featured_dishes
+  examples: |
+    - món nổi bật
+    - featured dishes
+    - món được đề xuất
+    - bạn recommend cái gì
+    - món hay nhất
+    - top dishes
+    - món signature
+
+- intent: ask_dish_price
+  examples: |
+    - giá món này bao nhiêu
+    - bao nhiêu tiền
+    - món [phở bò](dish_name) giá mấy
+    - giá [cà phê](dish_name)
+    - giá cả
+    - cost
+    - price
+
+- intent: ask_dish_details
+  examples: |
+    - chi tiết về [phở bò](dish_name)
+    - mô tả [salad caesar](dish_name)
+    - [phở bò](dish_name) có gì
+    - ingredients của [salad caesar](dish_name)
+    - thành phần của món này
+    - món đó như thế nào
+    - mô tả món vừa rồi
+    - details
+
+# ===== BOOKING =====
+- intent: book_table
+  examples: |
+    - tôi muốn đặt bàn
+    - đặt bàn cho [2](number_of_people) người
+    - tôi cần đặt chỗ cho [4](number_of_people) người
+    - đặt bàn [hôm nay](date) lúc [7 giờ tối](time)
+    - tôi muốn đặt bàn [ngày mai](date)
+    - đặt chỗ cho [6](number_of_people) người vào [thứ 7](date)
+    - tôi cần bàn [VIP](table_type)
+    - đặt bàn [thường](table_type)
+    - tôi muốn bàn [riêng tư](table_type)
+    - đặt bàn [gần cửa sổ](location)
+    - tôi muốn ngồi [phía góc](location)
+    - book table for [3](number_of_people) people
+    - đặt bàn [tối nay](date) [19:30](time)
+    - tôi muốn đặt bàn cho [gia đình](number_of_people)
+    - đặt bàn [4](number_of_people) người ngày [07/01/2025](date) lúc [19:00](time)
+    - đặt chỗ
+    - tôi muốn đặt chỗ
+    - đặt chỗ ngồi
+    - book chỗ
+    - reserve bàn
+    - reserve chỗ
+    - reservation
+    - tôi cần đặt chỗ
+    - muốn đặt chỗ
+    - làm sao để đặt chỗ
+    - đặt chỗ cho [2](number_of_people) người
+    - đặt chỗ [tối nay](date)
+    - tôi muốn reserve bàn
+    - cần đặt chỗ cho [nhóm](number_of_people)
+    - đặt chỗ [6](number_of_people) người
+    - book chỗ ngồi
+    - tôi muốn book table
+    - reserve table
+    - make reservation
+    - đặt chỗ ngồi cho [4](number_of_people) người
+    - tôi cần reserve chỗ
+    - muốn book bàn
+    - làm sao đặt chỗ ở đây
+    - đặt chỗ ngồi [hôm nay](date)
+    - reserve chỗ cho [gia đình](number_of_people)
+    - tôi muốn đặt chỗ ngồi [tối mai](date)
+    - đặt bàn [8](number_of_people) người ngày [08/01/2025](date)
+    - book table [10](number_of_people) people [tomorrow](date) [20:00](time)
+    - đặt chỗ ngồi [6](number_of_people) người [cuối tuần](date)
+    - tôi muốn đặt bàn [VIP](table_type) cho [4](number_of_people) người
+
+- intent: confirm_booking
+  examples: |
+    - xác nhận đặt bàn
+    - ok đặt bàn này
+    - đồng ý đặt bàn
+    - yes, đặt bàn
+    - được, đặt bàn
+    - tôi xác nhận đặt bàn
+    - confirm reservation
+    - xác nhận đặt chỗ
+    - ok đặt chỗ này
+    - đồng ý đặt chỗ
+    - tôi xác nhận chỗ này
+    - confirm booking
+    - xác nhận chỗ
+    - ok book chỗ này
+
+- intent: modify_booking
+  examples: |
+    - thay đổi thông tin đặt bàn
+    - sửa lại đặt bàn
+    - tôi muốn đổi giờ
+    - thay đổi số người
+    - đổi ngày đặt bàn
+    - modify booking
+    - chỉnh sửa reservation
+    - sửa đặt chỗ
+    - thay đổi đặt chỗ
+    - chỉnh sửa chỗ đã đặt
+    - đổi thông tin chỗ
+    - modify reservation
+    - sửa lại chỗ
+    - thay đổi booking
+
+- intent: cancel_reservation
+  examples: |
+    - hủy đặt bàn
+    - tôi muốn hủy reservation
+    - bỏ đặt bàn
+    - cancel reservation
+    - không muốn đặt nữa
+    - hủy đặt chỗ
+    - bỏ đặt chỗ
+    - tôi muốn hủy đặt chỗ
+    - cancel booking
+    - hủy chỗ
+    - không cần đặt chỗ nữa
+    - hủy reservation
+    - tôi không đến được
+    - có việc đột xuất không đến được
+    - hủy bàn đã đặt
+    - không thể tới nhà hàng
+    - thôi hủy đặt bàn
+    - đổi ý rồi không đặt
+    - hủy lịch đặt bàn
+
+- intent: ask_available_tables
+  examples: |
+    - có bàn trống không
+    - bàn nào đang trống
+    - còn chỗ không
+    - có chỗ cho [4](number_of_people) người không
+    - [tối nay](date) còn bàn không
+    - kiểm tra bàn trống
+    - available tables
+    - còn chỗ trống không
+    - có chỗ ngồi không
+    - check chỗ trống
+    - xem chỗ còn trống
+    - có chỗ không
+    - tìm chỗ trống
+    - chỗ nào còn trống
+
+# ===== ORDERING =====
+- intent: order_food
+  examples: |
+    - tôi muốn gọi món
+    - gọi đồ ăn
+    - đặt món ăn
+    - tôi muốn ăn [phở bò](dish_name)
+    - cho tôi [2](quantity) phần [bò bít tết](dish_name)
+    - gọi [1](quantity) ly [cà phê](dish_name)
+    - tôi muốn thử [tiramisu](dish_name)
+    - order food
+    - gọi món [phở tái](dish_name)
+    - muốn ăn [bún chả](dish_name)
+    - đặt [3](quantity) ly [trà sữa](dish_name)
+    - order [lẩu thái](dish_name)
+    - tôi gọi [bánh cuốn](dish_name)
+    - muốn ăn [bò lúc lắc](dish_name)
+    - cho tôi gọi [mì quảng](dish_name)
+    - đặt món [chả cá](dish_name)
+    - tôi muốn order [bánh xèo](dish_name)
+    - gọi [phở gà](dish_name) với
+    - có thể cho tôi [cơm tấm](dish_name)
+    - làm ơn cho [nem nướng](dish_name)
+    - gọi [Cà Phê Sữa Đá](dish_name)
+    - tôi muốn gọi [Bánh Mì Thịt Nướng](dish_name)
+    - cho tôi [Cơm Tấm Sườn Nướng](dish_name)
+    - đặt [Phở Bò Tái Nạm](dish_name)
+    - gọi [Bún Chả Hà Nội](dish_name)
+    - gọi món [Bánh Mì Thịt Nướng](dish_name)
+    - tôi muốn ăn [Cà Phê Sữa Đá](dish_name)
+    - cho tôi món [Bún Bò Huế](dish_name)
+    - đặt [Gỏi Cuốn Tôm Thịt](dish_name)
+    - gọi [Nem Rán](dish_name)
+    - tôi muốn [Chè Ba Màu](dish_name)
+    - cho [Sinh Tố Xoài](dish_name)
+    - gọi [Phở Chay](dish_name)
+
+- intent: add_to_order
+  examples: |
+    - thêm [cá hồi nướng](dish_name)
+    - cho thêm [1](quantity) phần [phở bò](dish_name)
+    - tôi muốn thêm [salad](dish_name)
+    - add to cart [bò bít tết](dish_name)
+    - thêm một phần nữa
+    - thêm vào đơn [gà nướng](dish_name)
+    - cho thêm [2](quantity) ly [nước cam](dish_name)
+    - add thêm [bánh flan](dish_name)
+    - thêm món [chả cá](dish_name)
+    - tôi muốn thêm [kem vani](dish_name)
+    - cho thêm vào đơn [sinh tố bơ](dish_name)
+    - add more [spring roll](dish_name)
+    - bổ sung [canh chua](dish_name)
+    - thêm [Bánh Mì Thịt Nướng](dish_name)
+    - cho thêm [Cơm Tấm Sườn Nướng](dish_name)
+    - thêm món [Cà Phê Sữa Đá](dish_name) vào đơn
+    - thêm món [Phở Bò Tái](dish_name) vào đơn
+    - thêm món [Bún Bò Huế](dish_name) vào đơn
+    - thêm món [Sinh Tố Xoài](dish_name) vào đơn
+    - thêm món [Gỏi Cuốn Tôm Thịt](dish_name) vào đơn
+    - thêm món [Nem Rán](dish_name) vào đơn
+    - thêm món [Chè Ba Màu](dish_name) vào đơn
+    - thêm món [Phở Chay](dish_name) vào đơn
+    - cho thêm món [Cà Phê Sữa Đá](dish_name)
+    - thêm [Cà Phê Sữa Đá](dish_name) vào đơn
+    - thêm [Phở Bò Tái](dish_name) vào đơn
+    - cho [Bún Bò Huế](dish_name) vào đơn
+
+- intent: view_current_order
+  examples: |
+    - xem đơn hàng
+    - tôi đã gọi món gì
+    - kiểm tra đơn
+    - danh sách món đã order
+    - show my order
+    - current order
+
+- intent: modify_order
+  examples: |
+    - sửa đơn hàng
+    - thay đổi món
+    - bỏ [phở bò](dish_name) ra khỏi đơn
+    - tôi không muốn [cà phê](dish_name) nữa
+    - modify order
+    - change quantity
+    - sửa lại đơn
+
+- intent: confirm_order
+  examples: |
+    - xác nhận đơn hàng
+    - ok đơn này
+    - đặt món này
+    - hoàn tất order
+    - confirm order
+    - được rồi, thanh toán
+
+- intent: cancel_order
+  examples: |
+    - hủy đơn hàng
+    - không gọi món nữa
+    - tôi không muốn đặt
+    - cancel order
+    - bỏ đơn
+    - hủy order
+    - thôi không gọi món
+    - đổi ý không ăn
+    - bỏ đơn hàng
+    - xóa đơn hàng
+    - cancel tất cả
+    - không muốn ăn nữa
+    - thôi hủy hết
+
+# ===== CONTEXTUAL REFERENCES =====
+- intent: contextual_question
+  examples: |
+    - món đó giá bao nhiêu
+    - cái này có gì trong đó
+    - nó ngon không
+    - thứ đó có cay không
+    - dish đó như thế nào
+    - cái kia có đắt không
+    - món vừa rồi có ngon không
+    - nó có phù hợp với trẻ em không
+    - thứ này có nhiều calories không
+    - món đó có cần đặt trước không
+    - cái này mất bao lâu để làm
+    - nó có vegetarian không
+    - món kia có halal không
+    - thứ đó có gluten free không
+
+# ===== MODIFICATION INTENTS =====  
+- intent: modify_specific_field
+  examples: |
+    - sửa số người
+    - đổi ngày
+    - thay đổi giờ
+    - sửa tên
+    - đổi số điện thoại
+    - sửa thành 6 người
+    - đổi sang ngày mai
+    - thay đổi thành 8 giờ tối
+    - sửa tên thành Nguyễn Văn A
+    - đổi số lượng thành 3
+    - thay đổi món này thành món khác
+    - sửa lại từ đầu
+    - đặt lại toàn bộ
+    - nhập lại hết
+    - làm lại từ đầu
+    - reset tất cả
+
+# ===== ORDER REFERENCES =====
+- intent: order_item_reference  
+  examples: |
+    - món đầu tiên
+    - món cuối cùng  
+    - món thứ hai
+    - món thứ ba
+    - món số 1
+    - món số 2
+    - món số 3
+    - món số 4
+    - món số 5
+    - số 1
+    - số 2
+    - số 3
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - cái đầu
+    - cái cuối
+    - thứ nhất trong đơn
+    - item đầu tiên
+    - item cuối
+    - first item
+    - last item
+    - second dish
+    - third one
+    - món áp chót
+    - món trước cuối
+    - món chót
+    - bỏ tất cả món đã gọi
+    - chọn món 1
+    - chọn món 2
+    - lấy món đầu
+    - lấy món thứ nhất
+
+# ===== RECOMMENDATIONS =====
+- intent: ask_popular_dishes
+  examples: |
+    - món nào được ưa chuộng
+    - món được gọi nhiều
+    - best seller
+    - món hot
+    - món nào nổi tiếng
+
+- intent: ask_special_dishes
+  examples: |
+    - món đặc biệt
+    - signature dish
+    - món chủ lực
+    - specialty
+    - specialty dishes
+    - những gì khác biệt
+
+- intent: recommend_dishes
+  examples: |
+    - tôi nên ăn gì
+    - món nào đáng thử
+    - recommend dishes
+
+# ===== RESTAURANT INFO =====
+- intent: ask_opening_hours
+  examples: |
+    - giờ mở cửa
+    - mấy giờ mở cửa
+    - nhà hàng mở cửa khi nào
+    - giờ hoạt động
+    - opening hours
+    - business hours
+    - giờ làm việc
+    - mở bao lâu
+
+- intent: ask_address
+  examples: |
+    - địa chỉ nhà hàng
+    - ở đâu
+    - address
+    - location
+    - nhà hàng nằm ở đâu
+    - chỉ đường
+    - how to get there
+    - ở tại đâu
+
+- intent: ask_contact
+  examples: |
+    - thông tin liên hệ
+    - số điện thoại
+    - contact
+    - phone number
+    - email
+    - cách liên lạc
+    - contact info
+    - liên hệ với nhà hàng
+
+- intent: ask_promotions
+  examples: |
+    - có khuyến mãi gì không
+    - promotion hiện tại
+    - giảm giá
+    - chương trình ưu đãi
+    - deals
+    - offers
+    - có điều gì ưu đãi không
+    - giảm giá bao nhiêu
+
+# ===== BOT CHALLENGE =====
+- intent: bot_challenge
+  examples: |
+    - bạn là ai
+    - bạn là bot à
+    - are you a robot
+    - bạn là con người không
+    - bạn là bot
+    - who are you
+
+# ===== PAYMENT INTENTS =====
+- intent: request_payment
+  examples: |
+    - tôi muốn thanh toán
+    - thanh toán đơn hàng
+    - tính tiền
+    - trả tiền
+    - thanh toán bill
+    - tôi cần thanh toán
+    - muốn pay
+    - payment please
+    - bill please
+    - check please
+    - tôi muốn trả tiền món ăn
+    - có thể thanh toán được không
+    - làm sao để thanh toán
+    - tôi muốn settle bill
+
+- intent: process_payment
+  examples: |
+    - tôi thanh toán bằng tiền mặt
+    - thanh toán bằng thẻ
+    - tôi chuyển khoản
+    - thanh toán qua QR code
+    - tôi trả bằng [cash](payment_method)
+    - thanh toán bằng [thẻ tín dụng](payment_method)  
+    - tôi muốn [chuyển khoản](payment_method)
+    - thanh toán bằng [mobile banking](payment_method)
+    - trả bằng [tiền mặt](payment_method)
+    - [card](payment_method) payment
+    - pay with [cash](payment_method)
+    - [bank transfer](payment_method)
+    - [QR code](payment_method) payment
+    - thanh toán [tiền mặt](payment_method)
+
+- intent: check_payment_status
+  examples: |
+    - kiểm tra thanh toán
+    - trạng thái thanh toán
+    - đã thanh toán chưa
+    - payment status
+    - check bill status
+    - tôi đã trả tiền chưa
+    - đơn hàng đã thanh toán chưa
+    - kiểm tra trạng thái bill
+    - có cần thanh toán thêm không
+
+- intent: select_payment_method
+  examples: |
+    - tôi muốn chọn phương thức thanh toán
+    - phương thức thanh toán nào có sẵn
+    - có thể thanh toán bằng gì
+    - payment methods
+    - các cách thanh toán
+    - tôi có thể trả bằng gì
+    - phương thức nào được chấp nhận
+    - payment options
+
+# ===== PAYMENT ENTITIES =====
+entities:
+  - payment_method
+
+lookup:
+  - number_of_people:
+      - "2"
+      - "4"
+      - "6"
+      - "8"
+      - "10"
+      
+  - date:
+      - "hôm nay"
+      - "ngày mai"
+      - "tối nay"
+      
+  - time:
+      - "19:00"
+      - "20:00"

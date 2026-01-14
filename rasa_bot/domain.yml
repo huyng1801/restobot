@@ -1,0 +1,433 @@
+version: "3.1"
+
+intents:
+  - greet
+  - goodbye
+  - affirm
+  - deny
+  - bot_challenge
+  - nlu_fallback
+  
+  # Đặt bàn
+  - book_table
+  - ask_available_tables
+  - cancel_reservation
+  - confirm_booking
+  - modify_booking
+  
+  # Xem thực đơn
+  - view_menu
+  - ask_menu_categories
+  - ask_featured_dishes
+  - ask_dish_price
+  - ask_dish_details
+  
+  # Đặt món
+  - order_food
+  - add_to_order
+  - view_current_order
+  - modify_order
+  - confirm_order
+  - cancel_order
+  
+  # Hỏi thông tin
+  - ask_opening_hours
+  - ask_address
+  - ask_contact
+  - ask_promotions
+  
+  # Gợi ý món ăn
+  - recommend_dishes
+  - ask_popular_dishes
+  - ask_special_dishes
+
+  # Quản lý hội thoại nâng cao  
+  - contextual_question
+  - modify_specific_field
+  - order_item_reference
+  
+  # Thanh toán
+  - request_payment
+  - process_payment
+  - check_payment_status
+  - select_payment_method
+
+entities:
+  - number_of_people
+  - date
+  - time
+  - dish_name
+  - quantity
+  - table_type
+  - location
+  - confirmation
+  - modification_type
+  - phone_number
+  - customer_name
+  - payment_method
+
+slots:
+  number_of_people:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: from_entity
+      entity: number_of_people
+    
+  reservation_date:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: from_entity
+      entity: date
+    
+  reservation_time:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: from_entity
+      entity: time
+    
+  table_type:
+    type: text
+    initial_value: null
+    influence_conversation: false
+    mappings:
+    - type: from_entity
+      entity: table_type
+    
+  current_order:
+    type: list
+    initial_value: []
+    influence_conversation: true
+    mappings:
+    - type: custom
+    
+  current_order_id:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: custom
+    
+  active_table_id:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: custom
+    
+  dish_name:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: from_entity
+      entity: dish_name
+    
+  last_mentioned_dish:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: from_entity
+      entity: dish_name
+    
+  # Context management slots
+  conversation_context:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: custom
+    
+  current_step:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: custom
+    
+  pending_confirmation:
+    type: bool
+    initial_value: false
+    influence_conversation: true
+    mappings:
+    - type: custom
+    
+  # Booking management slots
+  last_booking_id:
+    type: text
+    initial_value: null
+    influence_conversation: false
+    mappings:
+    - type: custom
+    
+  # Customer information slots
+  customer_name:
+    type: text
+    initial_value: null
+    influence_conversation: false
+    mappings:
+    - type: from_entity
+      entity: customer_name
+    
+  customer_phone:
+    type: text
+    initial_value: null
+    influence_conversation: false
+    mappings:
+    - type: from_entity
+      entity: phone_number
+    
+  # Order management slots
+  current_dish_quantity:
+    type: float
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: from_entity
+      entity: quantity
+
+  # Enhanced order confirmation slots
+  pending_order_item:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: custom
+    
+  suggested_dishes:
+    type: list
+    initial_value: []
+    influence_conversation: true
+    mappings:
+    - type: custom
+
+  # Advanced conversation management slots
+  last_mentioned_dishes:
+    type: list
+    initial_value: []
+    influence_conversation: true
+    mappings:
+    - type: custom
+    
+  last_action_type:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: custom
+    
+  item_to_modify:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: custom
+    
+  # Payment slots
+  payment_order_id:
+    type: text
+    initial_value: null
+    influence_conversation: false
+    mappings:
+    - type: custom
+    
+  payment_amount:
+    type: float
+    initial_value: null
+    influence_conversation: false
+    mappings:
+    - type: custom
+    
+  payment_method:
+    type: text
+    initial_value: null
+    influence_conversation: false
+    mappings:
+    - type: from_entity
+      entity: payment_method
+    
+  last_order_id:
+    type: text
+    initial_value: null
+    influence_conversation: false
+    mappings:
+    - type: custom
+    
+  modification_type:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: custom
+
+forms:
+  booking_form:
+    required_slots:
+      - number_of_people
+      - reservation_date
+      - reservation_time
+      
+  order_form:
+    required_slots:
+      - dish_name
+      - current_dish_quantity
+
+responses:
+  utter_greet:
+  - text: "Xin chào! Tôi là trợ lý ảo của nhà hàng. Tôi có thể giúp bạn đặt bàn, xem thực đơn, gọi món hoặc trả lời các câu hỏi về nhà hàng. Bạn cần tôi hỗ trợ gì?"
+
+  utter_goodbye:
+  - text: "Tạm biệt! Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi. Chúc bạn có một ngày tuyệt vời!"
+
+  utter_iamabot:
+  - text: "Tôi là trợ lý ảo của nhà hàng, được tạo ra để hỗ trợ bạn với các dịch vụ đặt bàn, gọi món và thông tin nhà hàng."
+
+  utter_ask_number_of_people:
+  - text: "Bạn muốn đặt bàn cho bao nhiêu người?"
+
+  utter_ask_reservation_date:
+  - text: "Bạn muốn đặt bàn vào ngày nào? (Ví dụ: hôm nay, ngày mai, 20/10/2025)"
+
+  utter_ask_reservation_time:
+  - text: "Bạn muốn đặt bàn vào lúc mấy giờ? (Ví dụ: 19:00, 7 giờ tối)"
+
+  utter_ask_customer_name:
+  - text: "Xin cho biết tên của bạn để đặt bàn?"
+
+  utter_ask_customer_phone:
+  - text: "Xin cho biết số điện thoại liên hệ?"
+
+  utter_ask_dish_name:
+  - text: "Bạn muốn gọi món gì?"
+
+  utter_ask_current_dish_quantity:
+  - text: "Bạn muốn gọi bao nhiêu phần {last_mentioned_dish}?"
+
+  utter_confirm_reservation:
+  - text: "Tôi sẽ đặt bàn cho {number_of_people} người vào lúc {reservation_time} ngày {reservation_date}. Bạn có xác nhận không?"
+
+  utter_reservation_success:
+  - text: "Đã đặt bàn thành công! Mã đặt bàn của bạn là #{reservation_id}. Chúng tôi sẽ liên hệ với bạn để xác nhận."
+
+  utter_show_menu:
+  - text: "Đây là thực đơn của chúng tôi. Bạn có thể xem theo danh mục hoặc tôi có thể giới thiệu những món đặc biệt."
+
+  utter_ask_dish_quantity:
+  - text: "Bạn muốn gọi bao nhiêu phần {dish_name}?"
+
+  utter_add_to_order_success:
+  - text: "Đã thêm {quantity} phần {dish_name} vào đơn hàng của bạn."
+
+  utter_show_current_order:
+  - text: "Đơn hàng hiện tại của bạn:"
+
+  utter_confirm_order:
+  - text: "Bạn có muốn xác nhận đơn hàng này không?"
+
+  utter_order_success:
+  - text: "Đơn hàng của bạn đã được xác nhận! Mã đơn hàng: #{order_id}. Thời gian chuẩn bị ước tính: {preparation_time} phút."
+
+  utter_opening_hours:
+  - text: "Nhà hàng mở cửa từ 10:00 sáng đến 10:00 tối, từ thứ 2 đến chủ nhật."
+
+  utter_address:
+  - text: "Địa chỉ nhà hàng: 123 Đường Nguyễn Văn Cừ, Quận 1, TP.HCM. Điện thoại: (028) 3123 4567"
+
+  utter_contact:
+  - text: "Thông tin liên hệ:\n📞 Điện thoại: (028) 3123 4567\n📧 Email: info@restobot.com\n🌐 Website: www.restobot.com"
+
+  utter_current_promotions:
+  - text: "Chương trình khuyến mãi hiện tại:\n🎉 Giảm 20% cho đơn hàng trên 500k\n🍰 Tặng món tráng miệng cho bàn từ 4 người\n🥤 Nước uống miễn phí vào thứ 3 hàng tuần"
+
+  utter_popular_dishes:
+  - text: "Những món ăn được yêu thích nhất tại nhà hàng:"
+
+  utter_special_dishes:
+  - text: "Món đặc biệt hôm nay:"
+
+  utter_default:
+  - text: "😊 Tôi chưa hiểu rõ ý bạn. Để tôi có thể hỗ trợ tốt hơn, bạn có thể nói cụ thể hơn được không?"
+  - text: "🤔 Có vẻ như tôi chưa nắm được yêu cầu của bạn. Hãy thử diễn đạt theo cách khác nhé!"
+  - text: "💡 Tôi có thể giúp bạn: **đặt bàn**, **xem thực đơn**, **gọi món**, hoặc **hỏi thông tin nhà hàng**. Bạn cần tôi hỗ trợ gì?"
+
+  utter_ask_rephrase:
+  - text: "🙏 Xin lỗi, bạn có thể nói lại theo cách khác được không? Tôi muốn hiểu rõ để hỗ trợ bạn tốt nhất."
+  - text: "😅 Tôi có thể hiểu nhầm ý bạn. Bạn có thể diễn đạt rõ hơn một chút được không?"
+
+  utter_deny_request:
+  - text: "Được rồi, tôi hiểu. Bạn có cần tôi hỗ trợ gì khác không?"
+  - text: "Không sao cả. Bạn cần tôi giúp việc gì khác không?"
+
+  utter_error:
+  - text: "Xin lỗi, có lỗi xảy ra. Vui lòng thử lại sau hoặc liên hệ bộ phận hỗ trợ."
+
+actions:
+  # Menu actions
+  - action_show_menu
+  - action_show_popular_dishes
+  - action_show_special_dishes
+  - action_show_bestseller_dishes
+  - action_ask_dish_details
+  - action_ask_dish_price
+  - action_recommend_dishes
+
+  # Booking actions
+  - action_show_available_tables
+  - action_book_table
+  - action_cancel_reservation
+  - action_confirm_cancel_reservation
+  - action_confirm_booking
+  - action_modify_booking
+
+  # Order actions
+  - action_add_to_order
+  - action_view_current_order
+  - action_show_current_order
+  - action_confirm_order
+  - action_confirm_order_final
+  - action_cancel_order
+  - action_confirm_cancel_order
+  - action_deny_cancellation
+  - action_modify_order
+  - action_remove_from_order
+  - action_modify_order_item
+
+  # Info actions
+  - action_show_opening_hours
+  - action_show_address
+  - action_show_contact
+  - action_show_promotions
+
+  # Conversation management actions
+  - action_handle_contextual_query
+  - action_reset_context
+  - action_conversation_manager
+  - action_update_conversation_context
+  - action_smart_suggestion
+
+  # Form actions
+  - booking_form
+  - order_form
+
+  # Utility actions
+  - action_deny_request
+  - action_handle_error
+  
+  # Enhanced order confirmation actions
+  - action_confirm_order_item
+  - action_select_dish_by_number
+
+  # Payment actions
+  - action_initiate_payment
+  - action_process_payment
+  - action_check_payment_status
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true

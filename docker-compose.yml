@@ -27,7 +27,7 @@ services:
       POSTGRES_PASSWORD: "CsXIWgr/0Vym+TgtFD5ch/z71XGvcT7UoFW/kkJmEpo="
       POSTGRES_DB: restobot_db
       # SECURITY: Memory optimization
-      POSTGRES_INITDB_ARGS: "-c shared_buffers=256MB -c max_connections=200"
+# POSTGRES_INITDB_ARGS: "-c shared_buffers=256MB -c max_connections=200"
     # SECURITY: Database NOT exposed to internet in production
     # Uncomment for local development only:
     # ports:

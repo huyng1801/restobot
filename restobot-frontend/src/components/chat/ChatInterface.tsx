@@ -46,6 +46,17 @@ interface DishItem {
   image_url?: string;
   preparation_time?: number;
   category?: string;
+  quantity?: number;
+  unit_price?: number;
+  total_price?: number;
+}
+
+interface OrderInfo {
+  order_number?: string;
+  total_amount?: number;
+  tax_amount?: number;
+  items?: DishItem[];
+  status?: string;
 }
 
 interface Message {
@@ -55,6 +66,7 @@ interface Message {
   timestamp: Date;
   image?: string;
   dishes?: DishItem[];
+  order?: OrderInfo;
 }
 
 interface ConnectionStatus {
@@ -63,68 +75,41 @@ interface ConnectionStatus {
   message: string;
 }
 
-// Gợi ý tin nhắn dựa trên NLU
+// Gợi ý tin nhắn ngắn gọn dựa trên NLU và seed data
 const messageSuggestions = [
-  // Greeting & Basics
+  // Chào hỏi
   { category: '👋 Chào hỏi', text: 'Xin chào', color: '#4CAF50' },
-  { category: '� Chào hỏi', text: 'Bạn có thể giúp tôi không', color: '#4CAF50' },
   
-  // Menu & Dishes  
+  // Thực đơn
   { category: '🍽️ Thực đơn', text: 'Cho tôi xem thực đơn', color: '#FF9800' },
-  { category: '🍽️ Thực đơn', text: 'Có những món gì', color: '#FF9800' },
   { category: '🍽️ Thực đơn', text: 'Món nổi bật', color: '#FF9800' },
-  { category: '🍽️ Thực đơn', text: 'Bạn recommend cái gì', color: '#FF9800' },
-  { category: '🍽️ Thực đơn', text: 'Món được ưa chuộng', color: '#FF9800' },
-  { category: '🍽️ Thực đơn', text: 'Món đặc biệt', color: '#FF9800' },
-  { category: '🍽️ Thực đơn', text: 'Signature dish', color: '#FF9800' },
-  { category: '🍽️ Thực đơn', text: 'Có món gì ở đây', color: '#FF9800' },
   
-  // Booking - Match NLU examples exactly
-  { category: '🪑 Đặt bàn', text: 'Tôi muốn đặt bàn', color: '#2196F3' },
-  { category: '🪑 Đặt bàn', text: 'Đặt bàn cho 2 người', color: '#2196F3' },
-  { category: '🪑 Đặt bàn', text: 'Đặt bàn 4 người ngày 07/01/2026 lúc 19:00', color: '#2196F3' },
+  // Đặt bàn
+  { category: '🪑 Đặt bàn', text: 'Đặt bàn cho 4 người', color: '#2196F3' },
   { category: '🪑 Đặt bàn', text: 'Có bàn trống không', color: '#2196F3' },
-  { category: '🪑 Đặt bàn', text: 'Đặt bàn hôm nay 19:30', color: '#2196F3' },
-  { category: '🪑 Đặt bàn', text: 'Đặt chỗ cho gia đình', color: '#2196F3' },
-  { category: '🪑 Đặt bàn', text: 'Hủy đặt bàn', color: '#2196F3' },
   { category: '🪑 Đặt bàn', text: 'Xem đặt bàn', color: '#2196F3' },
   
-  // Ordering - Match NLU examples
+  // Gọi món
   { category: '🛒 Gọi món', text: 'Tôi muốn gọi món', color: '#9C27B0' },
-  { category: '🛒 Gọi món', text: 'Gọi đồ ăn', color: '#9C27B0' },
-  { category: '🛒 Gọi món', text: 'Đặt món ăn', color: '#9C27B0' },
   { category: '🛒 Gọi món', text: 'Xem đơn hàng', color: '#9C27B0' },
-  { category: '🛒 Gọi món', text: 'Xác nhận đơn hàng', color: '#9C27B0' },
-  { category: '🛒 Gọi món', text: 'Thêm món vào đơn', color: '#9C27B0' },
-  { category: '🛒 Gọi món', text: 'Sửa đơn hàng', color: '#9C27B0' },
-  { category: '🛒 Gọi món', text: 'Hủy đơn hàng', color: '#9C27B0' },
-  { category: '💳 Thanh toán', text: 'Tôi muốn thanh toán', color: '#795548' },
-  { category: '💳 Thanh toán', text: 'Thanh toán đơn hàng', color: '#795548' },
-  { category: '💳 Thanh toán', text: 'Thanh toán tiền mặt', color: '#795548' },
   
-  // Restaurant Info
+  // Món ăn phổ biến (từ seed data)
+  { category: '🍜 Món ăn', text: 'Phở Bò Tái', color: '#E91E63' },
+  { category: '🍜 Món ăn', text: 'Cơm Tấm Sườn Nướng', color: '#E91E63' },
+  { category: '🍜 Món ăn', text: 'Bún Bò Huế', color: '#E91E63' },
+  { category: '🍜 Món ăn', text: 'Cà Phê Sữa Đá', color: '#E91E63' },
+  
+  // Thanh toán
+  { category: '💳 Thanh toán', text: 'Thanh toán đơn hàng', color: '#795548' },
+  
+  // Thông tin
   { category: 'ℹ️ Thông tin', text: 'Giờ mở cửa', color: '#607D8B' },
   { category: 'ℹ️ Thông tin', text: 'Địa chỉ nhà hàng', color: '#607D8B' },
-  { category: 'ℹ️ Thông tin', text: 'Số điện thoại', color: '#607D8B' },
-  { category: 'ℹ️ Thông tin', text: 'Có khuyến mãi gì không', color: '#607D8B' },
-  { category: 'ℹ️ Thông tin', text: 'Thông tin liên hệ', color: '#607D8B' },
   
-  // Popular dishes examples - Match seed data exactly
-  { category: '🍜 Món ăn', text: 'Tôi muốn ăn Phở Bò Tái', color: '#E91E63' },
-  { category: '🍜 Món ăn', text: 'Gọi Bánh Mì Thịt Nướng', color: '#E91E63' },
-  { category: '🍜 Món ăn', text: 'Cho tôi 1 ly Cà Phê Sữa Đá', color: '#E91E63' },
-  { category: '🍜 Món ăn', text: 'Thêm Bún Bò Huế', color: '#E91E63' },
-  { category: '🍜 Món ăn', text: 'Gọi Cơm Tấm Sườn Nướng', color: '#E91E63' },
-  { category: '🍜 Món ăn', text: 'Cho tôi Gỏi Cuốn Tôm Thịt', color: '#E91E63' },
-  
-  // Confirmations
-  { category: '✅ Xác nhận', text: 'Có, tôi đồng ý', color: '#4CAF50' },
+  // Xác nhận/Từ chối
   { category: '✅ Xác nhận', text: 'Được rồi', color: '#4CAF50' },
-  { category: '✅ Xác nhận', text: 'Xác nhận', color: '#4CAF50' },
   { category: '❌ Từ chối', text: 'Không, cảm ơn', color: '#F44336' },
-  { category: '❌ Từ chối', text: 'Hủy bỏ', color: '#F44336' },
   { category: '👋 Tạm biệt', text: 'Cảm ơn bạn', color: '#9E9E9E' },
-  { category: '👋 Tạm biệt', text: 'Tạm biệt', color: '#9E9E9E' },
 ];
 
 const formatMessage = (text: string): string => {
@@ -272,6 +257,16 @@ Bạn có thể sử dụng các nút gợi ý bên dưới hoặc nhập tin nh
           dishes: response.dishes,
         };
         setMessages(prev => [...prev, botMessage]);
+      } else if (response.order) {
+        // Nếu có thông tin đơn hàng
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: response.response,
+          sender: 'bot',
+          timestamp: new Date(),
+          order: response.order,
+        };
+        setMessages(prev => [...prev, botMessage]);
       } else if (Array.isArray(response.messages)) {
         // Nếu có multiple messages
         for (const msg of response.messages) {
@@ -282,6 +277,7 @@ Bạn có thể sử dụng các nút gợi ý bên dưới hoặc nhập tin nh
             timestamp: new Date(),
             image: msg.image,
             dishes: msg.dishes,
+            order: msg.order,
           };
           setMessages(prev => [...prev, botMessage]);
         }
@@ -530,6 +526,11 @@ Bạn có thể sử dụng các nút gợi ý bên dưới hoặc nhập tin nh
                             <CardContent sx={{ flex: 1, p: 1.5, '&:last-child': { pb: 1.5 } }}>
                               <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
                                 {dish.name}
+                                {dish.quantity && (
+                                  <Typography component="span" variant="body2" color="primary" sx={{ ml: 1, fontWeight: 600 }}>
+                                    x{dish.quantity}
+                                  </Typography>
+                                )}
                               </Typography>
                               {dish.description && (
                                 <Typography 
@@ -548,12 +549,20 @@ Bạn có thể sử dụng các nút gợi ý bên dưới hoặc nhập tin nh
                                 </Typography>
                               )}
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                                {dish.price && (
+                                {(dish.price || dish.unit_price) && (
                                   <Chip 
-                                    label={`${dish.price.toLocaleString('vi-VN')}đ`}
+                                    label={`${(dish.unit_price || dish.price)?.toLocaleString('vi-VN')}đ`}
                                     size="small"
                                     color="primary"
                                     sx={{ height: 20, fontSize: '0.7rem' }}
+                                  />
+                                )}
+                                {dish.total_price && (
+                                  <Chip 
+                                    label={`Tổng: ${dish.total_price.toLocaleString('vi-VN')}đ`}
+                                    size="small"
+                                    color="secondary"
+                                    sx={{ height: 20, fontSize: '0.7rem', fontWeight: 600 }}
                                   />
                                 )}
                                 {dish.preparation_time && (
@@ -574,6 +583,94 @@ Bạn có thể sử dụng các nút gợi ý bên dưới hoặc nhập tin nh
                           </Card>
                         ))}
                       </Stack>
+                    )}
+                    
+                    {/* Hiển thị thông tin đơn hàng chi tiết */}
+                    {message.order && (
+                      <Card variant="outlined" sx={{ mt: 1, bgcolor: 'background.default' }}>
+                        <CardContent sx={{ p: 2 }}>
+                          {message.order.order_number && (
+                            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: 'primary.main' }}>
+                              📋 Đơn hàng #{message.order.order_number}
+                            </Typography>
+                          )}
+                          
+                          {message.order.items && message.order.items.length > 0 && (
+                            <Box sx={{ mb: 2 }}>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1.5 }}>
+                                🍽️ Món đã gọi:
+                              </Typography>
+                              <Stack spacing={1}>
+                                {message.order.items.map((item, index) => (
+                                  <Box 
+                                    key={index}
+                                    sx={{ 
+                                      display: 'flex', 
+                                      justifyContent: 'space-between', 
+                                      alignItems: 'center',
+                                      p: 1.5,
+                                      borderRadius: 1,
+                                      bgcolor: 'grey.50',
+                                      border: '1px solid',
+                                      borderColor: 'grey.200'
+                                    }}
+                                  >
+                                    <Box sx={{ flex: 1 }}>
+                                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                        {item.name}
+                                      </Typography>
+                                      <Typography variant="caption" color="text.secondary">
+                                        {(item.unit_price || item.price)?.toLocaleString('vi-VN')}đ × {item.quantity}
+                                      </Typography>
+                                    </Box>
+                                    <Typography variant="body2" sx={{ fontWeight: 600, color: 'primary.main' }}>
+                                      {(item.total_price || (item.quantity! * (item.unit_price || item.price!)))?.toLocaleString('vi-VN')}đ
+                                    </Typography>
+                                  </Box>
+                                ))}
+                              </Stack>
+                            </Box>
+                          )}
+                          
+                          {(message.order.total_amount || message.order.tax_amount) && (
+                            <Box sx={{ borderTop: '1px solid', borderColor: 'grey.200', pt: 2 }}>
+                              {message.order.tax_amount && (
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                                  <Typography variant="body2" color="text.secondary">
+                                    Thuế VAT (10%):
+                                  </Typography>
+                                  <Typography variant="body2">
+                                    {message.order.tax_amount.toLocaleString('vi-VN')}đ
+                                  </Typography>
+                                </Box>
+                              )}
+                              {message.order.total_amount && (
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                                    💰 Tổng cộng:
+                                  </Typography>
+                                  <Typography variant="h6" sx={{ fontWeight: 600, color: 'primary.main' }}>
+                                    {message.order.total_amount.toLocaleString('vi-VN')}đ
+                                  </Typography>
+                                </Box>
+                              )}
+                            </Box>
+                          )}
+                          
+                          {message.order.status && (
+                            <Box sx={{ mt: 2, textAlign: 'center' }}>
+                              <Chip 
+                                label={message.order.status}
+                                color={
+                                  message.order.status.includes('hoàn thành') ? 'success' :
+                                  message.order.status.includes('đang') ? 'warning' : 'info'
+                                }
+                                sx={{ fontWeight: 600 }}
+                              />
+                            </Box>
+                          )}
+                        </CardContent>
+                      </Card>
                     )}
                     
                     {/* Hiển thị single image nếu có */}
@@ -789,24 +886,7 @@ Bạn có thể sử dụng các nút gợi ý bên dưới hoặc nhập tin nh
         </Paper>
       </Box>
 
-      {/* Floating Action Button */}
-      <Box sx={{ position: 'fixed', bottom: 80, right: 16, display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <Fab
-          color="secondary"
-          aria-label="table status"
-          onClick={handleStatusView}
-          sx={{ 
-            '&:hover': { 
-              transform: 'scale(1.1)',
-              boxShadow: 6 
-            },
-            transition: 'all 0.2s'
-          }}
-        >
-          <StatusViewIcon />
-        </Fab>
-      </Box>
-
+   
 
 
       {/* Table Status Dialog */}

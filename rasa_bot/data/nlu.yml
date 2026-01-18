@@ -322,6 +322,16 @@ nlu:
     - modify order
     - change quantity
     - sửa lại đơn
+    - sửa số lượng [cà phê sữa đá](dish_name) thành [2](quantity)
+    - đổi [phở bò](dish_name) thành [3](quantity) phần
+    - thay đổi số lượng [bún bò](dish_name) thành [1](quantity)
+    - sửa [cơm tấm](dish_name) thành [4](quantity) suất
+    - đổi quantity [bánh mì](dish_name) thành [2](quantity)
+    - bỏ [nem rán](dish_name)
+    - xóa [gỏi cuốn](dish_name) khỏi đơn
+    - không muốn [chè](dish_name) nữa
+    - hủy [sinh tố](dish_name)
+    - remove [tiramisu](dish_name)
 
 - intent: confirm_order
   examples: |
@@ -561,8 +571,15 @@ nlu:
     - phương thức nào được chấp nhận
     - payment options
 
-# ===== PAYMENT ENTITIES =====
+# ===== ENTITIES =====
 entities:
+  - dish_name
+  - quantity
+  - number_of_people
+  - date
+  - time
+  - table_type
+  - location
   - payment_method
 
 lookup:

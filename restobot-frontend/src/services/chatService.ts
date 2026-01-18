@@ -14,6 +14,7 @@ export interface RasaResponse {
     payload: string;
   }>;
   custom?: any;
+  json_message?: any;
 }
 
 export interface DishItem {
@@ -23,6 +24,17 @@ export interface DishItem {
   image_url?: string;
   preparation_time?: number;
   category?: string;
+  quantity?: number;
+  unit_price?: number;
+  total_price?: number;
+}
+
+export interface OrderInfo {
+  order_number?: string;
+  total_amount?: number;
+  tax_amount?: number;
+  items?: DishItem[];
+  status?: string;
 }
 
 export interface ChatResponse {
@@ -31,10 +43,12 @@ export interface ChatResponse {
   text?: string;
   image?: string;
   dishes?: DishItem[];
+  order?: OrderInfo;
   messages?: Array<{
     text?: string;
     image?: string;
     dishes?: DishItem[];
+    order?: OrderInfo;
     buttons?: Array<{
       title: string;
       payload: string;
@@ -112,13 +126,14 @@ export class ChatService {
       console.log('Rasa response:', rasaResponses); // Debug log
       
       if (rasaResponses && rasaResponses.length > 0) {
-        // Xử lý multiple messages (có thể bao gồm text, image, và dishes)
+        // Xử lý multiple messages (có thể bao gồm text, image, dishes và order)
         const messages = rasaResponses.map(r => ({
           text: r.text || '',
           image: r.image,
           dishes: r.custom?.dishes || [],
+          order: r.custom?.order || r.json_message?.order || null,
           buttons: r.buttons
-        })).filter(m => m.text || m.image || (m.dishes && m.dishes.length > 0)); // Chỉ lấy messages có nội dung
+        })).filter(m => m.text || m.image || (m.dishes && m.dishes.length > 0) || m.order); // Chỉ lấy messages có nội dung
         
         if (messages.length > 0) {
           // Tổng hợp tất cả dishes từ các messages
@@ -129,6 +144,9 @@ export class ChatService {
             return acc;
           }, [] as DishItem[]);
           
+          // Lấy order info từ message đầu tiên có order
+          const orderInfo = messages.find(m => m.order)?.order;
+          
           // Tổng hợp tất cả text
           const allTexts = messages.map(m => m.text).filter(t => t).join('\n\n');
           
@@ -136,6 +154,7 @@ export class ChatService {
             response: allTexts || 'Đây là thông tin bạn cần:',
             messages: messages,
             dishes: allDishes.length > 0 ? allDishes : undefined,
+            order: orderInfo || undefined,
             recipient_id: rasaResponses[0].recipient_id
           };
         }

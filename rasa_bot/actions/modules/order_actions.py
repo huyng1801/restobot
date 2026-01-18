@@ -493,39 +493,50 @@ Bạn chưa gọi món nào.
                     return []
 
                 table_id = order_info.get('table_id', 'N/A')
-                order_text = f"📋 **ĐƠN HÀNG HIỆN TẠI** (Bàn {table_id})\n\n"
-                total_amount = 0.0
-
-                for i, item in enumerate(order_info['order_items'], 1):
-                    print(f"🔍 Debug: Processing order_item {i}: {item}")
-                    
-                    # API now returns menu_item nested
+                order_number = order_info.get('order_number', 'N/A')
+                total_amount = order_info.get('total_amount', 0)
+                tax_amount = order_info.get('tax_amount', 0)
+                status = order_info.get('status', 'pending')
+                
+                # Chuẩn bị items cho frontend
+                items = []
+                for item in order_info['order_items']:
                     menu_item = item.get('menu_item', {})
-                    quantity = item.get('quantity', 0)
-                    unit_price = item.get('unit_price', 0)
-                    total_price = item.get('total_price', 0)
-                    item_name = menu_item.get('name', 'Món không tên')
-                    
-                    print(f"🔍 Debug: item_name={item_name}, quantity={quantity}, unit_price={unit_price}, total_price={total_price}")
-                    total_amount += total_price
-                    
-                    price_formatted = f"{unit_price:,.0f}đ"
-                    total_formatted = f"{total_price:,.0f}đ"
+                    items.append({
+                        'name': menu_item.get('name', 'Món không tên'),
+                        'quantity': item.get('quantity', 0),
+                        'unit_price': item.get('unit_price', 0),
+                        'total_price': item.get('total_price', 0),
+                        'price': item.get('unit_price', 0),  # Backup field
+                        'description': menu_item.get('description', ''),
+                        'image_url': menu_item.get('image_url', ''),
+                        'category': menu_item.get('category', {}).get('name', '') if menu_item.get('category') else ''
+                    })
 
-                    order_text += f"{i}. **{item_name}**\n"
-                    order_text += f"   Số lượng: {quantity} x {price_formatted} = {total_formatted}\n"
-                    if item.get('special_instructions'):
-                        order_text += f"   📝 Ghi chú: {item['special_instructions']}\n"
-                    order_text += "\n"
-                                
-                total_amount_formatted = f"{total_amount:,.0f}đ"
-                order_text += f"💰 **Tổng tiền: {total_amount_formatted}**\n\n"
+                # Tạo custom response cho frontend
+                custom_data = {
+                    "order": {
+                        "order_number": order_number,
+                        "total_amount": total_amount,
+                        "tax_amount": tax_amount,
+                        "items": items,
+                        "status": status
+                    }
+                }
+
+                order_text = f"📋 **ĐƠN HÀNG #{order_number}** (Bàn {table_id})\n\n"
+                order_text += f"🍽️ **{len(items)} món đã gọi**\n"
+                order_text += f"💰 **Tổng cộng: {total_amount:,.0f}đ** (bao gồm thuế)\n\n"
                 order_text += "💡 **Lựa chọn tiếp theo:**\n"
-                order_text += "• Gọi thêm món: 'Tôi muốn thêm [tên món]'\n"
+                order_text += "• Sửa đơn: 'Sửa đơn hàng'\n"
                 order_text += "• Xác nhận: 'Xác nhận đơn hàng'\n"
-                order_text += "• Hủy: 'Hủy đơn hàng'"
+                order_text += "• Thanh toán: 'Thanh toán đơn hàng'"
 
-                dispatcher.utter_message(text=order_text)
+                dispatcher.utter_message(text=order_text, json_message=custom_data)
+            else:
+                print(f"❌ Order API failed with status: {response.status_code}")
+                print(f"❌ Error response: {response.text}")
+                dispatcher.utter_message(text="❌ Không thể tải thông tin đơn hàng. Vui lòng thử lại sau.")
             else:
                 print(f"❌ Order API failed with status: {response.status_code}")
                 print(f"❌ Error response: {response.text}")
@@ -863,8 +874,30 @@ class ActionModifyOrder(Action):
         if not authenticated_user:
             dispatcher.utter_message(text="🔐 Bạn cần đăng nhập để sửa đơn hàng.")
             return []
+        
+        # Kiểm tra xem có entities để xử lý modification không
+        entities = tracker.latest_message.get('entities', [])
+        dish_name = None
+        quantity = None
+        
+        for entity in entities:
+            if entity['entity'] == 'dish_name':
+                dish_name = entity['value'].lower()
+            elif entity['entity'] == 'quantity':
+                try:
+                    quantity = int(entity['value'])
+                except ValueError:
+                    quantity = None
+        
+        # Nếu có dish_name và quantity, xử lý sửa số lượng
+        if dish_name and quantity is not None:
+            return self._handle_quantity_modification(dispatcher, tracker, dish_name, quantity, authenticated_user)
+        
+        # Nếu chỉ có dish_name (không có quantity), xử lý xóa món
+        elif dish_name:
+            return self._handle_remove_dish(dispatcher, tracker, dish_name, authenticated_user)
             
-        # Lấy current order ID
+        # Nếu không có entities cụ thể, hiển thị menu hướng dẫn
         current_order_id = tracker.get_slot("current_order_id")
         
         if not current_order_id:
@@ -884,6 +917,71 @@ Bạn muốn sửa gì trong đơn hàng?
 💡 Hãy cho tôi biết cụ thể bạn muốn sửa gì nhé!""")
         
         return [SlotSet("conversation_context", "modify_order")]
+    
+    def _handle_quantity_modification(self, dispatcher, tracker, dish_name, quantity, authenticated_user):
+        """Xử lý sửa số lượng món ăn"""
+        try:
+            current_order_id = tracker.get_slot("current_order_id")
+            if not current_order_id:
+                dispatcher.utter_message(text="❌ Không tìm thấy đơn hàng để sửa.")
+                return []
+            
+            headers = get_auth_headers_from_tracker(tracker)
+            
+            # Gọi API để cập nhật số lượng
+            response = requests.put(
+                f"{API_BASE_URL}/orders/{current_order_id}/items/update_quantity",
+                json={
+                    "dish_name": dish_name,
+                    "new_quantity": quantity
+                },
+                headers=headers,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                dispatcher.utter_message(text=f"✅ Đã cập nhật số lượng **{dish_name.title()}** thành **{quantity}**!\n\n💡 Bạn có thể nói 'Xem đơn hàng' để kiểm tra lại.")
+            elif response.status_code == 404:
+                dispatcher.utter_message(text=f"❌ Không tìm thấy món **{dish_name.title()}** trong đơn hàng.")
+            else:
+                result = response.json()
+                dispatcher.utter_message(text=f"❌ Lỗi: {result.get('detail', 'Không thể cập nhật số lượng')}")
+                
+        except Exception as e:
+            dispatcher.utter_message(text=f"❌ Có lỗi xảy ra khi sửa số lượng: {str(e)}")
+        
+        return []
+    
+    def _handle_remove_dish(self, dispatcher, tracker, dish_name, authenticated_user):
+        """Xử lý xóa món khỏi đơn hàng"""
+        try:
+            current_order_id = tracker.get_slot("current_order_id")
+            if not current_order_id:
+                dispatcher.utter_message(text="❌ Không tìm thấy đơn hàng để sửa.")
+                return []
+            
+            headers = get_auth_headers_from_tracker(tracker)
+            
+            # Gọi API để xóa món
+            response = requests.delete(
+                f"{API_BASE_URL}/orders/{current_order_id}/items/remove",
+                json={"dish_name": dish_name},
+                headers=headers,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                dispatcher.utter_message(text=f"✅ Đã xóa **{dish_name.title()}** khỏi đơn hàng!\n\n💡 Bạn có thể nói 'Xem đơn hàng' để kiểm tra lại.")
+            elif response.status_code == 404:
+                dispatcher.utter_message(text=f"❌ Không tìm thấy món **{dish_name.title()}** trong đơn hàng.")
+            else:
+                result = response.json()
+                dispatcher.utter_message(text=f"❌ Lỗi: {result.get('detail', 'Không thể xóa món')}")
+                
+        except Exception as e:
+            dispatcher.utter_message(text=f"❌ Có lỗi xảy ra khi xóa món: {str(e)}")
+        
+        return []
 
 
 class ActionShowCurrentOrder(Action):

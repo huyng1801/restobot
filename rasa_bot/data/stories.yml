@@ -135,11 +135,34 @@ stories:
   steps:
   - intent: cancel_order
   - action: action_cancel_order
+  - intent: affirm
+  - action: action_confirm_cancel_order
+
+- story: cancel order and deny
+  steps:
+  - intent: cancel_order
+  - action: action_cancel_order
+  - intent: deny
+  - action: action_deny_cancellation
 
 - story: remove from order
   steps:
   - intent: remove_from_order
   - action: action_remove_from_order
+
+- story: cancel reservation
+  steps:
+  - intent: cancel_reservation
+  - action: action_cancel_reservation
+  - intent: affirm
+  - action: action_confirm_cancel_reservation
+
+- story: cancel reservation and deny
+  steps:
+  - intent: cancel_reservation
+  - action: action_cancel_reservation
+  - intent: deny
+  - action: action_deny_cancellation
 
 # ===== RESTAURANT INFO =====
 - story: ask opening hours

@@ -167,6 +167,20 @@ slots:
     mappings:
     - type: custom
     
+  pending_cancellation_reservation_id:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: custom
+    
+  pending_cancellation_order_id:
+    type: text
+    initial_value: null
+    influence_conversation: true
+    mappings:
+    - type: custom
+    
   # Customer information slots
   customer_name:
     type: text

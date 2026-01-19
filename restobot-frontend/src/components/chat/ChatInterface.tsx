@@ -147,10 +147,10 @@ const ChatInterface: React.FC = () => {
     fastApi: false,
     message: '🔗 Đang kiểm tra kết nối...'
   });
-  const [statusViewOpen, setStatusViewOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [currentOrder, setCurrentOrder] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
 
   // Shuffle suggestions on component mount
   useEffect(() => {
@@ -201,9 +201,7 @@ Bạn có thể sử dụng các nút gợi ý bên dưới hoặc nhập tin nh
     }
   };
 
-  const handleStatusView = () => {
-    setStatusViewOpen(true);
-  };
+
 
   const sendMessage = async (text?: string) => {
     const messageText = text || inputValue.trim();
@@ -789,23 +787,7 @@ Bạn có thể sử dụng các nút gợi ý bên dưới hoặc nhập tin nh
         </Paper>
       </Box>
 
-      {/* Floating Action Button */}
-      <Box sx={{ position: 'fixed', bottom: 80, right: 16, display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <Fab
-          color="secondary"
-          aria-label="table status"
-          onClick={handleStatusView}
-          sx={{ 
-            '&:hover': { 
-              transform: 'scale(1.1)',
-              boxShadow: 6 
-            },
-            transition: 'all 0.2s'
-          }}
-        >
-          <StatusViewIcon />
-        </Fab>
-      </Box>
+
 
 
 

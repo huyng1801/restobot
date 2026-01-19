@@ -38,6 +38,28 @@ nlu:
     - yes
     - vâng
     - ừ
+    - được rồi
+    - tôi xác nhận
+    - xác nhận đơn hàng
+    - có hủy đơn hàng
+    - có hủy đặt bàn
+    - đồng ý hủy
+    - đồng ý hủy đơn
+    - đồng ý hủy đơn hàng
+    - đồng ý hủy đặt bàn
+    - đúng rồi
+    - ừ được
+    - được thôi
+    - ok được
+    - chắc chắn
+    - tất nhiên
+    - có chắc
+    - chắc rồi
+    - được, hủy đi
+    - được, đồng ý
+    - tôi đồng ý hủy
+    - hãy hủy
+    - xác nhận hủy
 
 - intent: deny
   examples: |
@@ -50,6 +72,23 @@ nlu:
     - no
     - không đồng ý
     - không được
+    - thôi
+    - không cần
+    - bỏ đi
+    - không làm
+    - không xác nhận
+    - từ chối
+    - tôi từ chối
+    - không phải ý tôi
+    - sai rồi bạn
+    - không phải
+    - không ok
+    - ko được
+    - quên đi
+    - không, cảm ơn
+    - cảm ơn nhưng không
+    - không muốn nữa
+    - giữ lại đó
 
 # ===== MENU & DISHES =====
 - intent: view_menu
@@ -331,6 +370,18 @@ nlu:
     - hoàn tất order
     - confirm order
     - được rồi, thanh toán
+    - xác nhận đơn
+    - ok tôi muốn xác nhận
+    - tôi xác nhận đơn hàng
+    - xác nhận món ăn
+    - ok gửi bếp đi
+    - được rồi, gửi bếp
+    - xác nhận menu
+    - ok xác nhận
+    - được, xác nhận
+    - ok, đặt
+    - đồng ý xác nhận
+    - tôi xác nhận
 
 - intent: cancel_order
   examples: |

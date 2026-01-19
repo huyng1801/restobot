@@ -559,13 +559,10 @@ class ActionConfirmOrder(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         
-        # Extract user info from metadata
-        user_info = None
-        latest_message = tracker.latest_message
-        if latest_message and 'metadata' in latest_message and latest_message['metadata']:
-            user_info = latest_message['metadata'].get('user_info', {})
+        # Lấy thông tin user đã xác thực
+        authenticated_user = get_authenticated_user_from_tracker(tracker)
         
-        if not user_info or not user_info.get('user_id'):
+        if not authenticated_user:
             dispatcher.utter_message(text="🔐 Vui lòng đăng nhập để xác nhận đơn hàng.")
             return []
         
@@ -576,13 +573,16 @@ class ActionConfirmOrder(Action):
             return []
 
         try:
-            # Lấy auth headers từ token trong tracker, fallback to Rasa headers
+            # Lấy auth headers từ token trong tracker
             headers = get_auth_headers_from_tracker(tracker)
 
             # Lấy thông tin đơn hàng hiện tại
             order_response = requests.get(f"{API_BASE_URL}/orders/orders/{current_order_id}", headers=headers, timeout=5)
             
+            print(f"🔍 Debug: Get order response status: {order_response.status_code}")
+            
             if order_response.status_code != 200:
+                print(f"❌ Failed to get order: {order_response.text}")
                 dispatcher.utter_message(text="❌ Không tìm thấy đơn hàng để xác nhận.")
                 return []
             
@@ -593,18 +593,24 @@ class ActionConfirmOrder(Action):
                 return []
             
             # Cập nhật trạng thái đơn hàng thành CONFIRMED
+            update_data = {"status": "CONFIRMED"}
+            
             update_response = requests.patch(
-                f"{API_BASE_URL}/orders/orders/{current_order_id}/confirm",
+                f"{API_BASE_URL}/orders/orders/{current_order_id}",
                 headers=headers,
+                json=update_data,
                 timeout=10
             )
             
             print(f"🔍 Debug: Confirm order response status: {update_response.status_code}")
             print(f"🔍 Debug: Confirm order response: {update_response.text}")
             
-            if update_response.status_code == 200:
+            if update_response.status_code in [200, 201]:
                 # Tính tổng tiền
-                total_amount = sum(item.get('subtotal', 0) for item in order_info['order_items'])
+                total_amount = 0
+                for item in order_info['order_items']:
+                    total_amount += item.get('total_price', item.get('subtotal', 0))
+                
                 table_id = order_info.get('table_id', 'N/A')
                 
                 confirmation_message = f"""✅ **ĐƠN HÀNG ĐÃ ĐƯỢC XÁC NHẬN**
@@ -629,15 +635,22 @@ class ActionConfirmOrder(Action):
                     SlotSet("last_order_id", current_order_id),
                     SlotSet("active_table_id", None)
                 ]
-                
             else:
+                print(f"❌ Confirm API returned: {update_response.status_code}")
                 dispatcher.utter_message(text="❌ Không thể xác nhận đơn hàng lúc này. Vui lòng thử lại sau.")
+                return []
 
         except requests.exceptions.Timeout:
             dispatcher.utter_message(text="⏱️ Kết nối chậm. Đang xử lý đơn hàng... Vui lòng đợi.")
+            return []
         except requests.exceptions.RequestException as e:
             print(f"Order confirmation error: {e}")
             dispatcher.utter_message(text="🔧 Lỗi hệ thống khi xác nhận đơn hàng. Vui lòng liên hệ nhân viên.")
+            return []
+        except Exception as e:
+            print(f"Unexpected error in ActionConfirmOrder: {e}")
+            dispatcher.utter_message(text="❌ Có lỗi xảy ra khi xác nhận đơn hàng. Vui lòng thử lại.")
+            return []
         except Exception as e:
             print(f"Unexpected order confirmation error: {e}")
             dispatcher.utter_message(text="🔧 Lỗi bất ngờ khi xác nhận đơn hàng. Vui lòng liên hệ nhân viên.")

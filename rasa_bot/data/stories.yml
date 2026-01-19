@@ -247,33 +247,8 @@ stories:
   - action: action_add_to_order
 
 # ===== CONFIRMATION FLOWS =====
-- story: cancel order and confirm
-  steps:
-  - intent: cancel_order
-  - action: action_cancel_order
-  - intent: affirm
-  - action: action_confirm_cancel_order
-
-- story: cancel order and deny
-  steps:
-  - intent: cancel_order
-  - action: action_cancel_order
-  - intent: deny
-  - action: action_deny_cancellation
-
-- story: cancel reservation and confirm
-  steps:
-  - intent: cancel_reservation
-  - action: action_cancel_reservation
-  - intent: affirm
-  - action: action_confirm_cancel_reservation
-
-- story: cancel reservation and deny
-  steps:
-  - intent: cancel_reservation
-  - action: action_cancel_reservation
-  - intent: deny
-  - action: action_deny_cancellation
+# Note: Confirmation flows are handled by conditional rules, not stories
+# to avoid conflicts with general deny/affirm handling
 
 # ===== PAYMENT STORIES =====
 - story: simple payment request

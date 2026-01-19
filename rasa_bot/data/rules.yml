@@ -171,12 +171,7 @@ rules:
   - intent: order_item_reference
   - action: action_select_dish_by_number
 
-- rule: Handle deny request
-  steps:
-  - intent: deny
-  - action: utter_deny_request
-
-# ===== FALLBACK RULES =====
+# ===== FALLBACK RULES =======
 - rule: Fallback rule
   steps:
   - intent: nlu_fallback

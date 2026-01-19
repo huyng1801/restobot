@@ -348,6 +348,29 @@ nlu:
     - không muốn ăn nữa
     - thôi hủy hết
 
+- intent: remove_from_order
+  examples: |
+    - bỏ [phở bò](dish_name)
+    - xóa [cà phê](dish_name) khỏi đơn
+    - loại bỏ [salad](dish_name)
+    - remove [spring roll](dish_name)
+    - không muốn [bánh flan](dish_name) nữa
+    - thôi không ăn [gà nướng](dish_name)
+    - hủy món [chả cá](dish_name)
+    - đổi ý không lấy [kem vani](dish_name)
+    - bỏ món [sinh tố bơ](dish_name) ra
+    - xóa [canh chua](dish_name) khỏi danh sách
+    - không cần [Bánh Mì Thịt Nướng](dish_name)
+    - bỏ [Cơm Tấm Sườn Nướng](dish_name) đi
+    - xóa [Cà Phê Sữa Đá](dish_name) ra khỏi đơn
+    - loại [Phở Bò Tái](dish_name) ra
+    - không lấy [Bún Bò Huế](dish_name)
+    - hủy [Sinh Tố Xoài](dish_name)
+    - bỏ đi [Gỏi Cuốn Tôm Thịt](dish_name)
+    - xóa [Nem Rán](dish_name) khỏi đơn hàng
+    - không muốn [Chè Ba Màu](dish_name)
+    - thôi bỏ [Phở Chay](dish_name)
+
 # ===== CONTEXTUAL REFERENCES =====
 - intent: contextual_question
   examples: |

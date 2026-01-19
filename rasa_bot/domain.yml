@@ -29,6 +29,7 @@ intents:
   - modify_order
   - confirm_order
   - cancel_order
+  - remove_from_order
   
   # Hỏi thông tin
   - ask_opening_hours

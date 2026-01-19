@@ -32,24 +32,19 @@ class ActionAddToOrder(Action):
         # Lấy thông tin user đã xác thực từ tracker
         authenticated_user = get_authenticated_user_from_tracker(tracker)
         
-        # Nếu không có user đã xác thực, yêu cầu đăng nhập
+        # Nếu không có user đã xác thực, hiển thị thông báo nhẹ nhàng hơn
         if not authenticated_user:
-            dispatcher.utter_message(text="""🔐 **ĐĂNG NHẬP YÊU CẦU**
+            print("⚠️ Warning: User not authenticated, but proceeding with guest order")
+            # Có thể cho phép guest order hoặc yêu cầu đăng nhập nhẹ nhàng hơn
+            dispatcher.utter_message(text="""💡 **GỢI Ý ĐĂNG NHẬP**
             
-Để gọi món, bạn cần đăng nhập vào hệ thống.
+Để trải nghiệm tốt nhất, bạn nên đăng nhập để:
+• Lưu đơn hàng và theo dõi
+• Nhận thông báo về món ăn
+• Sử dụng các ưu đãi đặc biệt
 
-📱 **Các bước:**
-1. Nhấn **"Đăng nhập"** ở góc trên
-2. Nhập tài khoản và mật khẩu
-3. Quay lại chat để gọi món
-
-💡 **Tại sao cần đăng nhập?**
-• Lưu đơn hàng của bạn
-• Xem lịch sử đặt món
-• Nhận ưu đãi đặc biệt
-
-🚀 Sau khi đăng nhập, hãy thử lại: "Tôi muốn gọi [tên món]" """)
-            return []
+🔄 **Tạm thời**: Tôi sẽ giúp bạn gọi món nhưng không lưu được lâu dài.""")
+            # Không return [] ở đây, cho phép tiếp tục
 
         try:
             # Lấy thông tin món từ entities
@@ -148,19 +143,33 @@ class ActionAddToOrder(Action):
                 print(f"❌ Response: {reservations_response.text}")
             
             if not active_reservation:
-                print(f"❌ No active reservation found for user")
-                dispatcher.utter_message(text="""🍽️ **CẦN ĐẶT BÀN ĐỂ GỌI MÓN**
+                print(f"⚠️ No active reservation found for user - will try to create walk-in order")
                 
-Không tìm thấy đặt bàn active của bạn.
+                # Kiểm tra xem có thể tạo walk-in order không
+                # Thử tìm bàn trống hoặc tạo take-away order
+                dispatcher.utter_message(text="""🍽️ **CHƯA CÓ ĐẶT BÀN**
+                
+Tôi không tìm thấy đặt bàn active của bạn, nhưng vẫn có thể giúp:
 
-📋 **Vui lòng:**
-1. Kiểm tra lại bàn đã đặt chưa bị hủy
-2. Đặt bàn mới nếu cần: **"Đặt bàn [số người] người [ngày] [giờ]"**
+📋 **Lựa chọn:**
+1. 🪑 **Đặt bàn trước:** "Đặt bàn [số người] người [ngày] [giờ]"
+2. 🥡 **Gọi món mang về:** "Tôi muốn order mang về"
+3. 🚶 **Walk-in (ngồi ngay):** "Tôi đang ở nhà hàng, muốn gọi món"
 
-💡 **Ví dụ:** "Đặt bàn 4 người ngày 20/10/2025 lúc 19:00"
+💡 **Ví dụ đặt bàn:** "Đặt bàn 4 người hôm nay lúc 19:00"
 
-🔄 Sau khi đặt bàn xong, bạn có thể gọi món: **"Tôi muốn ăn [tên món]"** """)
-                return []
+🔄 Hoặc cho tôi biết bạn muốn làm gì nhé!""")
+                
+                # Thay vì return [], cho phép tiếp tục với walk-in logic
+                # return []
+                
+                # Tạo walk-in order logic
+                print("🚶 Creating walk-in order without reservation")
+                active_reservation = {
+                    'id': 'walk-in-' + str(tracker.sender_id),
+                    'table_id': 'walk-in', 
+                    'status': 'walk-in'
+                }
 
             print(f"✅ Using reservation ID: {active_reservation.get('id')} for table {active_reservation.get('table_id', 'N/A')}")
 
@@ -746,6 +755,56 @@ class ActionConfirmCancelOrder(Action):
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         
         order_id = tracker.get_slot('pending_cancellation_order_id')
+        latest_intent = tracker.latest_message.get('intent', {}).get('name')
+        
+        if not order_id:
+            dispatcher.utter_message(text="❌ Không có đơn hàng nào để xác nhận hủy.")
+            return []
+            
+        # Xử lý xác nhận từ user
+        if latest_intent == 'affirm':
+            try:
+                headers = get_auth_headers_from_tracker(tracker)
+                
+                # Gọi API để hủy đơn hàng
+                cancel_response = requests.delete(
+                    f"{API_BASE_URL}/orders/orders/{order_id}",
+                    headers=headers,
+                    timeout=10
+                )
+                
+                if cancel_response.status_code == 200:
+                    dispatcher.utter_message(text=f"""✅ **ĐÃ HỦY ĐƠN HÀNG THÀNH CÔNG**
+
+🆔 **Mã đơn:** #{order_id}
+
+💡 **Bạn có thể:**
+• Gọi món mới: "Tôi muốn ăn [tên món]"
+• Xem thực đơn: "Cho xem thực đơn"
+• Đặt bàn mới: "Đặt bàn [số người] người""")
+                    return [
+                        SlotSet("current_order_id", None),
+                        SlotSet("pending_cancellation_order_id", None),
+                        SlotSet("conversation_context", None)
+                    ]
+                else:
+                    dispatcher.utter_message(text=f"❌ Không thể hủy đơn hàng. Lỗi: {cancel_response.status_code}")
+                    return []
+                    
+            except Exception as e:
+                print(f"Error canceling order: {e}")
+                dispatcher.utter_message(text="❌ Có lỗi xảy ra khi hủy đơn hàng. Vui lòng thử lại.")
+                return []
+                
+        elif latest_intent == 'deny':
+            dispatcher.utter_message(text="✅ Đã giữ lại đơn hàng. Bạn có cần hỗ trợ gì khác không?")
+            return [
+                SlotSet("pending_cancellation_order_id", None),
+                SlotSet("conversation_context", None)
+            ]
+        else:
+            dispatcher.utter_message(text="❓ Bạn có chắc chắn muốn hủy đơn hàng không?\n💡 Nói 'Có' hoặc 'Không'.")
+            return []
         
         if not order_id:
             dispatcher.utter_message(text="❌ Không tìm thấy thông tin đơn hàng cần hủy.")
@@ -861,8 +920,7 @@ class ActionModifyOrder(Action):
         authenticated_user = get_authenticated_user_from_tracker(tracker)
         
         if not authenticated_user:
-            dispatcher.utter_message(text="🔐 Bạn cần đăng nhập để sửa đơn hàng.")
-            return []
+            print("⚠️ Warning: User not authenticated, but proceeding with guest order modification")
             
         # Lấy current order ID
         current_order_id = tracker.get_slot("current_order_id")
@@ -870,24 +928,244 @@ class ActionModifyOrder(Action):
         if not current_order_id:
             dispatcher.utter_message(text="❌ Không tìm thấy đơn hàng nào để sửa. Hãy gọi món trước.")
             return []
+        
+        # Kiểm tra context - có phải đang trong quá trình modify không
+        conversation_context = tracker.get_slot("conversation_context")
+        latest_message = tracker.latest_message.get('text', '').lower()
+        
+        try:
+            headers = get_auth_headers_from_tracker(tracker)
             
-        dispatcher.utter_message(text="""🛠️ **SỬA ĐƠN HÀNG**
+            # Lấy thông tin đơn hàng hiện tại
+            response = requests.get(f"{API_BASE_URL}/orders/orders/{current_order_id}", headers=headers, timeout=5)
+            
+            if response.status_code == 200:
+                order_info = response.json()
+                order_items = order_info.get('order_items', [])
+                
+                if not order_items:
+                    dispatcher.utter_message(text="📝 Đơn hàng hiện tại trống. Không có gì để sửa.")
+                    return []
+                
+                # Xử lý các loại modification khác nhau
+                if any(keyword in latest_message for keyword in ['bỏ', 'xóa', 'hủy món', 'loại bỏ']):
+                    return self._handle_remove_item(dispatcher, tracker, order_info, latest_message)
+                elif any(keyword in latest_message for keyword in ['số lượng', 'đổi số', 'sửa số']):
+                    return self._handle_quantity_change(dispatcher, tracker, order_info, latest_message)
+                elif any(keyword in latest_message for keyword in ['thêm', 'add']):
+                    dispatcher.utter_message(text="➕ Để thêm món mới, hãy nói: 'Tôi muốn thêm [tên món]'")
+                    return []
+                else:
+                    # Hiển thị menu sửa đơn hàng
+                    message = f"""🛠️ **SỬA ĐƠN HÀNG**
 
-Bạn muốn sửa gì trong đơn hàng?
+📋 **Đơn hàng hiện tại:**"""
+                    
+                    for i, item in enumerate(order_items, 1):
+                        menu_item = item.get('menu_item', {})
+                        item_name = menu_item.get('name', 'Món không tên')
+                        quantity = item.get('quantity', 0)
+                        total_price = item.get('total_price', 0)
+                        message += f"\n{i}. {item_name} x{quantity} = {total_price:,.0f}đ"
+                    
+                    message += f"""
 
 📝 **Các lựa chọn:**
 • "Bỏ [tên món]" - Xóa món khỏi đơn
-• "Thêm [tên món]" - Thêm món mới
+• "Thêm [tên món]" - Thêm món mới  
 • "Sửa số lượng [món] thành [số]" - Đổi số lượng
 • "Xem đơn hàng" - Kiểm tra lại đơn hiện tại
 
-💡 Hãy cho tôi biết cụ thể bạn muốn sửa gì nhé!""")
+💡 Hãy cho tôi biết cụ thể bạn muốn sửa gì nhé!"""
+                    
+                    dispatcher.utter_message(text=message)
+                    return [SlotSet("conversation_context", "modify_order")]
+            else:
+                dispatcher.utter_message(text="❌ Không thể tải thông tin đơn hàng. Vui lòng thử lại.")
+                return []
+                
+        except Exception as e:
+            print(f"Error in ActionModifyOrder: {e}")
+            dispatcher.utter_message(text="❌ Có lỗi xảy ra khi sửa đơn hàng.")
+            return []
+    
+    def _handle_remove_item(self, dispatcher, tracker, order_info, message):
+        """Xử lý việc xóa món khỏi đơn hàng"""
+        import re
         
-        return [SlotSet("conversation_context", "modify_order")]
+        # Tìm tên món trong message
+        order_items = order_info.get('order_items', [])
+        dish_to_remove = None
+        
+        # Extract dish name from message
+        for item in order_items:
+            menu_item = item.get('menu_item', {})
+            dish_name = menu_item.get('name', '').lower()
+            if dish_name and dish_name in message:
+                dish_to_remove = item
+                break
+        
+        if dish_to_remove:
+            # Gọi API để xóa item
+            try:
+                headers = get_auth_headers_from_tracker(tracker)
+                order_id = tracker.get_slot("current_order_id")
+                item_id = dish_to_remove.get('id')
+                
+                delete_response = requests.delete(
+                    f"{API_BASE_URL}/orders/orders/{order_id}/items/{item_id}",
+                    headers=headers,
+                    timeout=10
+                )
+                
+                if delete_response.status_code == 200:
+                    menu_item = dish_to_remove.get('menu_item', {})
+                    dish_name = menu_item.get('name', 'Món không tên')
+                    dispatcher.utter_message(text=f"✅ Đã xóa **{dish_name}** khỏi đơn hàng!")
+                    return []
+                else:
+                    dispatcher.utter_message(text="❌ Không thể xóa món. Vui lòng thử lại.")
+                    return []
+                    
+            except Exception as e:
+                print(f"Error removing item: {e}")
+                dispatcher.utter_message(text="❌ Có lỗi khi xóa món.")
+                return []
+        else:
+            dispatcher.utter_message(text="❓ Tôi không tìm thấy món đó trong đơn hàng. Vui lòng nói chính xác tên món cần xóa.")
+            return []
+    
+    def _handle_quantity_change(self, dispatcher, tracker, order_info, message):
+        """Xử lý việc thay đổi số lượng món"""
+        import re
+        
+        # Extract quantity and dish name from message
+        quantity_match = re.search(r'(\d+)', message)
+        if not quantity_match:
+            dispatcher.utter_message(text="❓ Bạn muốn đổi số lượng thành bao nhiêu? Ví dụ: 'Sửa số lượng phở thành 3'")
+            return []
+        
+        new_quantity = int(quantity_match.group(1))
+        
+        # Find dish in order items
+        order_items = order_info.get('order_items', [])
+        item_to_update = None
+        
+        for item in order_items:
+            menu_item = item.get('menu_item', {})
+            dish_name = menu_item.get('name', '').lower()
+            if dish_name and dish_name in message:
+                item_to_update = item
+                break
+        
+        if item_to_update and new_quantity > 0:
+            try:
+                headers = get_auth_headers_from_tracker(tracker)
+                order_id = tracker.get_slot("current_order_id")
+                item_id = item_to_update.get('id')
+                
+                update_data = {
+                    "quantity": new_quantity
+                }
+                
+                update_response = requests.put(
+                    f"{API_BASE_URL}/orders/orders/{order_id}/items/{item_id}",
+                    headers=headers,
+                    json=update_data,
+                    timeout=10
+                )
+                
+                if update_response.status_code == 200:
+                    menu_item = item_to_update.get('menu_item', {})
+                    dish_name = menu_item.get('name', 'Món không tên')
+                    dispatcher.utter_message(text=f"✅ Đã cập nhật **{dish_name}** thành {new_quantity} phần!")
+                    return []
+                else:
+                    dispatcher.utter_message(text="❌ Không thể cập nhật số lượng. Vui lòng thử lại.")
+                    return []
+                    
+            except Exception as e:
+                print(f"Error updating quantity: {e}")
+                dispatcher.utter_message(text="❌ Có lỗi khi cập nhật số lượng.")
+                return []
+        else:
+            dispatcher.utter_message(text="❓ Tôi không tìm thấy món đó hoặc số lượng không hợp lệ. Vui lòng thử lại.")
+            return []
+
+
+class ActionRemoveFromOrder(Action):
+    """Action để xóa món khỏi đơn hàng"""
+
+    def name(self) -> Text:
+        return "action_remove_from_order"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        
+        current_order_id = tracker.get_slot("current_order_id")
+        
+        if not current_order_id:
+            dispatcher.utter_message(text="❌ Không tìm thấy đơn hàng nào. Hãy gọi món trước.")
+            return []
+        
+        # Extract dish name from entities
+        dish_name = None
+        for entity in tracker.latest_message.get('entities', []):
+            if entity['entity'] == 'dish_name':
+                dish_name = entity['value']
+                break
+        
+        if not dish_name:
+            dispatcher.utter_message(text="❓ Bạn muốn bỏ món gì? Vui lòng nói: 'Bỏ [tên món]'")
+            return []
+        
+        try:
+            headers = get_auth_headers_from_tracker(tracker)
+            
+            # Lấy thông tin đơn hàng hiện tại để tìm item cần xóa
+            response = requests.get(f"{API_BASE_URL}/orders/orders/{current_order_id}", headers=headers, timeout=5)
+            
+            if response.status_code == 200:
+                order_info = response.json()
+                order_items = order_info.get('order_items', [])
+                
+                # Tìm item cần xóa
+                item_to_remove = None
+                for item in order_items:
+                    menu_item = item.get('menu_item', {})
+                    if menu_item.get('name', '').lower() == dish_name.lower():
+                        item_to_remove = item
+                        break
+                
+                if item_to_remove:
+                    item_id = item_to_remove.get('id')
+                    
+                    # Gọi API để xóa item
+                    delete_response = requests.delete(
+                        f"{API_BASE_URL}/orders/orders/{current_order_id}/items/{item_id}",
+                        headers=headers,
+                        timeout=10
+                    )
+                    
+                    if delete_response.status_code == 200:
+                        dispatcher.utter_message(text=f"✅ Đã xóa **{dish_name}** khỏi đơn hàng!")
+                    else:
+                        dispatcher.utter_message(text="❌ Không thể xóa món. Vui lòng thử lại.")
+                else:
+                    dispatcher.utter_message(text=f"❓ Không tìm thấy **{dish_name}** trong đơn hàng.")
+            else:
+                dispatcher.utter_message(text="❌ Không thể tải thông tin đơn hàng.")
+                
+        except Exception as e:
+            print(f"Error in ActionRemoveFromOrder: {e}")
+            dispatcher.utter_message(text="❌ Có lỗi khi xóa món.")
+        
+        return []
 
 
 class ActionShowCurrentOrder(Action):
-    """Alias for ActionViewCurrentOrder"""
+    """Action để hiển thị đơn hàng hiện tại - alias for ActionViewCurrentOrder"""
 
     def name(self) -> Text:
         return "action_show_current_order"

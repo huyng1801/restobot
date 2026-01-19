@@ -116,6 +116,11 @@ rules:
   - intent: cancel_order
   - action: action_cancel_order
 
+- rule: Remove from order
+  steps:
+  - intent: remove_from_order
+  - action: action_remove_from_order
+
 # ===== RESTAURANT INFO RULES =====
 - rule: Show opening hours
   steps:
@@ -176,6 +181,39 @@ rules:
   steps:
   - intent: nlu_fallback
   - action: utter_default
+
+# ===== CONFIRMATION RULES =====
+- rule: Confirm cancel order 
+  condition:
+    - slot_was_set:
+      - conversation_context: "cancel_order_confirmation"
+  steps:
+  - intent: affirm
+  - action: action_confirm_cancel_order
+
+- rule: Deny cancel order
+  condition:
+    - slot_was_set:
+      - conversation_context: "cancel_order_confirmation"  
+  steps:
+  - intent: deny
+  - action: action_deny_cancellation
+
+- rule: Confirm cancel reservation
+  condition:
+    - slot_was_set:
+      - conversation_context: "cancel_reservation_confirmation"
+  steps:
+  - intent: affirm
+  - action: action_confirm_cancel_reservation
+
+- rule: Deny cancel reservation
+  condition:
+    - slot_was_set:
+      - conversation_context: "cancel_reservation_confirmation"
+  steps:
+  - intent: deny
+  - action: action_deny_cancellation
 
 # ===== PAYMENT RULES =====
 - rule: Initiate payment process

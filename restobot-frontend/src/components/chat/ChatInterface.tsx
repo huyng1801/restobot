@@ -31,12 +31,10 @@ import {
   ShoppingCart as CartIcon,
   Circle as StatusIcon,
   Login as LoginIcon,
-  ViewList as StatusViewIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { chatService } from '../../services/chatService';
 import { useAuth } from '../../hooks/useAuth';
-import TableStatusView from '../customer/TableStatusView';
 import PaymentDialog from '../customer/PaymentDialog';
 
 interface DishItem {
@@ -786,54 +784,6 @@ Bạn có thể sử dụng các nút gợi ý bên dưới hoặc nhập tin nh
           </IconButton>
         </Paper>
       </Box>
-
-
-
-
-
-      {/* Table Status Dialog */}
-      {statusViewOpen && (
-        <Paper
-          sx={{
-            position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '90vw',
-            maxWidth: '1200px',
-            height: '80vh',
-            overflow: 'auto',
-            zIndex: 1300,
-            p: 3,
-            boxShadow: 24,
-          }}
-        >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h5">Trạng thái bàn</Typography>
-            <Button onClick={() => setStatusViewOpen(false)}>Đóng</Button>
-          </Box>
-          <TableStatusView 
-            onBookTable={undefined}
-            showBookingButton={false}
-          />
-        </Paper>
-      )}
-
-      {/* Backdrop for status view */}
-      {statusViewOpen && (
-        <Box
-          sx={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            bgcolor: 'rgba(0,0,0,0.5)',
-            zIndex: 1200,
-          }}
-          onClick={() => setStatusViewOpen(false)}
-        />
-      )}
 
       {/* Payment Dialog */}
       <PaymentDialog

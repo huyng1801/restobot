@@ -661,44 +661,59 @@ Bạn không có đặt bàn nào đang chờ xử lý (từ hôm nay trở đi)
                 dispatcher.utter_message(text=message)
                 return []
             
-            # Có 1 reservation duy nhất - hiển thị xác nhận
+            # Có 1 reservation duy nhất - hủy luôn
             reservation = active_reservations[0]
+            reservation_id = reservation.get('id')
             
-            try:
-                if 'T' in str(reservation.get('reservation_date')):
-                    res_datetime = datetime.fromisoformat(str(reservation.get('reservation_date')).replace('Z', ''))
-                else:
-                    res_datetime = datetime.strptime(str(reservation.get('reservation_date')), '%Y-%m-%d')
+            # Hủy reservation bằng DELETE endpoint
+            cancel_response = requests.delete(f"{API_BASE_URL}/orders/reservations/{reservation_id}", headers=headers, timeout=5)
+            
+            if cancel_response.status_code == 200:
+                reservation_info = cancel_response.json()
                 
-                date_str = res_datetime.strftime('%d/%m/%Y')
-                time_str = res_datetime.strftime('%H:%M')
-            except:
-                date_str = str(reservation.get('reservation_date', 'N/A'))
-                time_str = 'N/A'
-            
-            table_info = reservation.get('table', {})
-            table_number = table_info.get('number', reservation.get('table_id', 'N/A'))
-            party_size = reservation.get('party_size', 'N/A')
-            
-            confirmation_message = f"""❓ **XÁC NHẬN HỦY ĐẶT BÀN**
+                try:
+                    if 'T' in str(reservation_info.get('reservation_date')):
+                        res_datetime = datetime.fromisoformat(str(reservation_info.get('reservation_date')).replace('Z', ''))
+                    else:
+                        res_datetime = datetime.strptime(str(reservation_info.get('reservation_date')), '%Y-%m-%d')
+                    
+                    date_str = res_datetime.strftime('%d/%m/%Y')
+                    time_str = res_datetime.strftime('%H:%M')
+                except:
+                    date_str = str(reservation_info.get('reservation_date', 'N/A'))
+                    time_str = 'N/A'
+                
+                table_info = reservation_info.get('table', {})
+                table_number = table_info.get('number', reservation_info.get('table_id', 'N/A'))
+                party_size = reservation_info.get('party_size', 'N/A')
+                
+                success_message = f"""✅ **ĐÃ HỦY ĐẶT BÀN THÀNH CÔNG**
 
-📋 **Thông tin đặt bàn:**
+📋 **Thông tin đã hủy:**
 🪑 **Bàn:** {table_number}
-👥 **Số người:** {party_size} người  
-📅 **Ngày:** {date_str}
+👥 **Số người:** {party_size} người
+📅 **Ngày:** {date_str}  
 🕐 **Giờ:** {time_str}
 
-⚠️ **Bạn có chắc chắn muốn hủy đặt bàn này không?**
+💡 **Lưu ý:**
+• Đặt bàn đã được hủy hoàn toàn
+• Bàn sẽ được giải phóng cho khách khác
+• Bạn có thể đặt bàn mới bất cứ lúc nào
 
-💡 **Chọn:**
-• Nói **"Có"** để xác nhận hủy
-• Nói **"Không"** để giữ lại đặt bàn"""
-            
-            dispatcher.utter_message(text=confirmation_message)
-            
-            # Lưu reservation_id để xử lý xác nhận
-            return [SlotSet("pending_cancellation_reservation_id", reservation.get('id')),
-                    SlotSet("conversation_context", "cancel_reservation_confirmation")]
+🔄 **Đặt bàn mới:** Nói "Đặt bàn [số người] người ngày [dd/mm/yyyy] lúc [hh:mm]" """
+                
+                dispatcher.utter_message(text=success_message)
+                
+                # Clear slots
+                return [
+                    SlotSet("last_booking_id", None)
+                ]
+            elif cancel_response.status_code == 404:
+                dispatcher.utter_message(text="❌ Không tìm thấy đặt bàn để hủy. Có thể bàn đã được hủy trước đó.")
+                return []
+            else:
+                dispatcher.utter_message(text="❌ Không thể hủy đặt bàn lúc này. Vui lòng liên hệ nhân viên.")
+                return []
             
         except Exception as e:
             print(f"Error in ActionCancelReservation: {e}")

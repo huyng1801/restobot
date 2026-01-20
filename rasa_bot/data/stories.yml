@@ -135,15 +135,6 @@ stories:
   steps:
   - intent: cancel_order
   - action: action_cancel_order
-  - intent: affirm
-  - action: action_confirm_cancel_order
-
-- story: cancel order and deny
-  steps:
-  - intent: cancel_order
-  - action: action_cancel_order
-  - intent: deny
-  - action: action_deny_cancellation
 
 - story: remove from order
   steps:

@@ -541,7 +541,7 @@ class CRUDOrder:
         # Recent reservations (last 5)
         recent_reservations = db.query(
             Reservation.id,
-            Reservation.reservation_datetimetime,
+            Reservation.reservation_datetime,
             Reservation.party_size,
             Reservation.status,
             User.full_name.label('customer_name'),
@@ -554,7 +554,7 @@ class CRUDOrder:
         for res_data in recent_reservations:
             recent_reservations_data.append({
                 'id': res_data.id,
-                'reservation_datetime': res_data.reservation_datetimetime.isoformat(),
+                'reservation_date': res_data.reservation_datetime.isoformat(),
                 'party_size': res_data.party_size,
                 'status': res_data.status,
                 'customer_name': res_data.customer_name,

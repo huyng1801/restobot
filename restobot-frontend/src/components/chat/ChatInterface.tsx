@@ -84,7 +84,7 @@ const messageSuggestions = [
   { category: '🪑 Đặt bàn', text: 'Có bàn trống không', color: '#2196F3' },
   { category: '🪑 Đặt bàn', text: 'Đặt bàn hôm nay 19:30', color: '#2196F3' },
   { category: '🪑 Đặt bàn', text: 'Đặt chỗ cho gia đình', color: '#2196F3' },
-  { category: '🪑 Đặt bàn', text: 'Hủy đặt bàn', color: '#2196F3' },
+  { category: '🪑 Đặt bàn', text: 'Hủy đặt bàn', color: '#F44336' },
   { category: '🪑 Đặt bàn', text: 'Xem đặt bàn', color: '#2196F3' },
   
   // Ordering - Match NLU examples
@@ -95,7 +95,7 @@ const messageSuggestions = [
   { category: '🛒 Gọi món', text: 'Xác nhận đơn hàng', color: '#9C27B0' },
   { category: '🛒 Gọi món', text: 'Thêm món vào đơn', color: '#9C27B0' },
   { category: '🛒 Gọi món', text: 'Sửa đơn hàng', color: '#9C27B0' },
-  { category: '🛒 Gọi món', text: 'Hủy đơn hàng', color: '#9C27B0' },
+  { category: '🛒 Gọi món', text: 'Hủy đơn hàng', color: '#F44336' },
   { category: '💳 Thanh toán', text: 'Tôi muốn thanh toán', color: '#795548' },
   { category: '💳 Thanh toán', text: 'Thanh toán đơn hàng', color: '#795548' },
   { category: '💳 Thanh toán', text: 'Thanh toán tiền mặt', color: '#795548' },
@@ -112,8 +112,12 @@ const messageSuggestions = [
   { category: '🍜 Món ăn', text: 'Gọi Bánh Mì Thịt Nướng', color: '#E91E63' },
   { category: '🍜 Món ăn', text: 'Cho tôi 1 ly Cà Phê Sữa Đá', color: '#E91E63' },
   { category: '🍜 Món ăn', text: 'Thêm Bún Bò Huế', color: '#E91E63' },
-  { category: '🍜 Món ăn', text: 'Gọi Cơm Tấm Sườn Nướng', color: '#E91E63' },
+  { category: '🍜 Món ăn', text: 'Gọi Cơm Tấm Sướn Nướng', color: '#E91E63' },
   { category: '🍜 Món ăn', text: 'Cho tôi Gỏi Cuốn Tôm Thịt', color: '#E91E63' },
+  { category: '🍜 Món ăn', text: 'Nem Rán 2 đĩa', color: '#E91E63' },
+  { category: '🍜 Món ăn', text: 'Sinh Tố Xoài', color: '#E91E63' },
+  { category: '🍜 Món ăn', text: 'Chè Ba Màu', color: '#E91E63' },
+  { category: '🍜 Món ăn', text: 'Phở Chay', color: '#E91E63' },
   
   // Confirmations
   { category: '✅ Xác nhận', text: 'Có, tôi đồng ý', color: '#4CAF50' },

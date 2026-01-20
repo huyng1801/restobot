@@ -279,23 +279,32 @@ Tôi không tìm thấy đặt bàn active của bạn, nhưng vẫn có thể g
                             f"{API_BASE_URL}/orders/orders/{current_order_id}/items/",
                             headers=headers,
                             json=add_item_data,
-                            timeout=10
+                            timeout=15  # Increase timeout để tránh timeout khi API xử lý
                         )
                         
                         print(f"🔍 Debug: Add item response status: {add_item_response.status_code}")
-                        print(f"🔍 Debug: Add item response: {add_item_response.text}")
+                        print(f"🔍 Debug: Add item response text: {add_item_response.text}")
                         
-                        if add_item_response.status_code not in [200, 201]:
-                            print(f"❌ Add item failed: {add_item_response.text}")
+                        # Check response properly
+                        if add_item_response.status_code == 200:
+                            print(f"✅ Item added successfully to order {current_order_id}")
+                            try:
+                                response_data = add_item_response.json()
+                                print(f"🔍 Debug: Response data: {response_data}")
+                            except:
+                                print("⚠️ Warning: Could not parse response JSON, but status is 200")
+                        else:
+                            print(f"❌ Add item failed with status {add_item_response.status_code}")
                             try:
                                 error_detail = add_item_response.json()
                                 print(f"🔍 Debug: Add item error detail: {error_detail}")
+                                error_message = error_detail.get('detail', 'Unknown error')
                             except Exception as parse_error:
                                 print(f"🔍 Debug: Could not parse add item error response: {parse_error}")
-                            dispatcher.utter_message(text="❌ Không thể thêm món vào đơn hàng. Vui lòng thử lại.")
+                                error_message = f"HTTP {add_item_response.status_code}"
+                            
+                            dispatcher.utter_message(text=f"❌ Không thể thêm món vào đơn hàng: {error_message}")
                             return []
-                        
-                        print(f"✅ Item added successfully to order {current_order_id}")
                     
                     # Hiển thị thông báo thêm món thành công
                     if current_order_id:
@@ -355,23 +364,27 @@ Tôi không tìm thấy đặt bàn active của bạn, nhưng vẫn có thể g
                         return []
                     
             else:
-                message = "Không thể tìm kiếm món ăn. Vui lòng thử lại sau."
-                dispatcher.utter_message(text=message)
+                dispatcher.utter_message(text="Không thể tìm kiếm món ăn. Vui lòng thử lại sau.")
                 return []
                 
         except requests.exceptions.Timeout:
-            message = "⏱️ Kết nối chậm. Vui lòng thử lại sau."
-            dispatcher.utter_message(text=message)
+            print("⚠️ Timeout: Request took too long, but item might still be processed")
+            dispatcher.utter_message(text="⏱️ Kết nối chậm. Đang xử lý... Hãy kiểm tra 'Xem đơn hàng' để xem món đã được thêm chưa.")
+            return []
+        except requests.exceptions.ConnectionError:
+            print("❌ Connection Error: Cannot connect to API")
+            dispatcher.utter_message(text="🔌 Không thể kết nối tới server. Vui lòng thử lại sau.")
+            return []
         except requests.exceptions.RequestException as e:
-            message = f"❌ Có lỗi xảy ra khi thêm món vào đơn hàng."
-            print(f"Error in ActionAddToOrder: {e}")
-            dispatcher.utter_message(text=message)
+            print(f"❌ RequestException in ActionAddToOrder: {e}")
+            dispatcher.utter_message(text="❌ Có lỗi mạng khi thêm món vào đơn hàng.")
+            return []
         except Exception as e:
-            message = f"❌ Có lỗi bất ngờ xảy ra khi thêm món vào đơn hàng."
-            print(f"Unexpected error in ActionAddToOrder: {e}")
-            dispatcher.utter_message(text=message)
-        
-        return []
+            print(f"❌ Unexpected error in ActionAddToOrder: {e}")
+            import traceback
+            traceback.print_exc()
+            dispatcher.utter_message(text="❌ Có lỗi bất ngờ xảy ra. Vui lòng thử 'Xem đơn hàng' để kiểm tra.")
+            return []
 
 
 class ActionRemoveFromOrder(Action):
@@ -704,19 +717,13 @@ Bạn không có đơn hàng nào đang chờ xử lý.
                     dispatcher.utter_message(text="📝 Đơn hàng hiện tại trống. Không có gì để hủy.")
                     return [SlotSet("current_order_id", None)]
                 
-                # Hiển thị thông tin đơn hàng và xác nhận
+                # Hủy đơn hàng luôn mà không cần xác nhận
                 table_id = order_info.get('table_id', 'N/A')
                 order_status = order_info.get('status', 'PENDING')
                 total_amount = 0.0
                 
-                confirmation_message = f"""❓ **XÁC NHẬN HỦY ĐƠN HÀNG**
-
-📋 **Thông tin đơn hàng:**
-🆔 **Mã đơn:** #{current_order_id}
-🪑 **Bàn:** {table_id}
-📊 **Trạng thái:** {order_status}"""
-                
-                items_text = "\n\n📝 **Các món đã gọi:**"
+                # Tính tổng tiền để hiển thị
+                items_text = "\n\n📝 **Các món đã hủy:**"
                 for i, item in enumerate(order_info['order_items'], 1):
                     # API now returns menu_item nested
                     menu_item = item.get('menu_item', {})
@@ -728,22 +735,36 @@ Bạn không có đơn hàng nào đang chờ xử lý.
                     total_amount += total_price
                     items_text += f"\n{i}. {item_name} x{quantity} = {total_price:,.0f}đ"
                 
-                confirmation_message += f"\n💰 **Tổng tiền:** {total_amount:,.0f}đ"
-                confirmation_message += items_text
+                # Hủy đơn hàng sử dụng endpoint cancel chuyên dụng
+                cancel_response = requests.patch(
+                    f"{API_BASE_URL}/orders/orders/{current_order_id}/cancel",
+                    headers=headers,
+                    timeout=10
+                )
                 
-                confirmation_message += f"""
+                if cancel_response.status_code in [200, 201]:
+                    success_message = f"""✅ **ĐÃ HỦY ĐƠN HÀNG THÀNH CÔNG**
 
-⚠️ **Bạn có chắc chắn muốn hủy toàn bộ đơn hàng này không?**
+📋 **Thông tin đã hủy:**
+🆔 **Mã đơn:** #{current_order_id}
+🪑 **Bàn:** {table_id}
+💰 **Tổng tiền:** {total_amount:,.0f}đ{items_text}
 
-💡 **Chọn:**
-• Nói **"Có"** để xác nhận hủy đơn hàng
-• Nói **"Không"** để giữ lại đơn hàng
-• Nói **"Xóa món [tên]"** để chỉ xóa một món"""
-                
-                dispatcher.utter_message(text=confirmation_message)
-                
-                return [SlotSet("pending_cancellation_order_id", current_order_id),
-                        SlotSet("conversation_context", "cancel_order_confirmation")]
+💡 **Bạn có thể:**
+• Gọi món mới: "Tôi muốn ăn [tên món]"
+• Xem thực đơn: "Cho xem thực đơn"
+• Đặt bàn mới: "Đặt bàn [số người] người" """
+                    
+                    dispatcher.utter_message(text=success_message)
+                    return [
+                        SlotSet("current_order_id", None),
+                        SlotSet("current_order", None)
+                    ]
+                else:
+                    print(f"❌ Cancel order failed - Status: {cancel_response.status_code}")
+                    print(f"❌ Cancel order response: {cancel_response.text}")
+                    dispatcher.utter_message(text=f"❌ Không thể hủy đơn hàng. Lỗi: {cancel_response.status_code}")
+                    return []
             else:
                 dispatcher.utter_message(text="❌ Không thể tải thông tin đơn hàng. Vui lòng thử lại sau.")
                 return []

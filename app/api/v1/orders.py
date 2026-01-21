@@ -616,7 +616,7 @@ def confirm_order(
                 )
     
     # Check if order is in a confirmable state
-    if order.status not in [OrderStatus.pending, OrderStatus.draft]:
+    if order.status not in [OrderStatus.pending]:
         raise HTTPException(
             status_code=400, 
             detail=f"Order cannot be confirmed. Current status: {order.status}"

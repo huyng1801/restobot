@@ -605,13 +605,10 @@ class ActionConfirmOrder(Action):
                 dispatcher.utter_message(text="📝 Đơn hàng không có món nào. Vui lòng gọi món trước khi xác nhận.")
                 return []
             
-            # Cập nhật trạng thái đơn hàng thành CONFIRMED
-            update_data = {"status": "CONFIRMED"}
-            
+            # Cập nhật trạng thái đơn hàng thành CONFIRMED sử dụng endpoint confirm chuyên dụng
             update_response = requests.patch(
-                f"{API_BASE_URL}/orders/orders/{current_order_id}",
+                f"{API_BASE_URL}/orders/orders/{current_order_id}/confirm",
                 headers=headers,
-                json=update_data,
                 timeout=10
             )
             
@@ -664,11 +661,6 @@ class ActionConfirmOrder(Action):
             print(f"Unexpected error in ActionConfirmOrder: {e}")
             dispatcher.utter_message(text="❌ Có lỗi xảy ra khi xác nhận đơn hàng. Vui lòng thử lại.")
             return []
-        except Exception as e:
-            print(f"Unexpected order confirmation error: {e}")
-            dispatcher.utter_message(text="🔧 Lỗi bất ngờ khi xác nhận đơn hàng. Vui lòng liên hệ nhân viên.")
-
-        return []
 
 
 class ActionCancelOrder(Action):

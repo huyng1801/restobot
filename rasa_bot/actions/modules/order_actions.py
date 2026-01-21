@@ -606,6 +606,10 @@ class ActionConfirmOrder(Action):
                 return []
             
             # Cập nhật trạng thái đơn hàng thành CONFIRMED sử dụng endpoint confirm chuyên dụng
+            print(f"🔍 Debug: Sending PATCH request to /orders/{current_order_id}/confirm")
+            print(f"🔍 Debug: Headers: {headers}")
+            print(f"🔍 Debug: Current user from tracker: {authenticated_user}")
+            
             update_response = requests.patch(
                 f"{API_BASE_URL}/orders/orders/{current_order_id}/confirm",
                 headers=headers,
@@ -646,8 +650,26 @@ class ActionConfirmOrder(Action):
                     SlotSet("active_table_id", None)
                 ]
             else:
+                # Phân tích error từ API
+                error_message = "❌ Không thể xác nhận đơn hàng"
+                try:
+                    error_data = update_response.json()
+                    error_detail = error_data.get('detail', 'Lỗi không xác định')
+                    print(f"❌ Confirm API error detail: {error_detail}")
+                    
+                    if update_response.status_code == 403:
+                        error_message = f"🔐 {error_detail}"
+                    elif update_response.status_code == 400:
+                        error_message = f"⚠️ {error_detail}"
+                    elif update_response.status_code == 404:
+                        error_message = "❌ Không tìm thấy đơn hàng này"
+                    else:
+                        error_message = f"❌ {error_detail} (Lỗi {update_response.status_code})"
+                except:
+                    error_message = f"❌ Không thể xác nhận đơn hàng (Lỗi {update_response.status_code}). Vui lòng liên hệ nhân viên."
+                
                 print(f"❌ Confirm API returned: {update_response.status_code}")
-                dispatcher.utter_message(text="❌ Không thể xác nhận đơn hàng lúc này. Vui lòng thử lại sau.")
+                dispatcher.utter_message(text=error_message)
                 return []
 
         except requests.exceptions.Timeout:

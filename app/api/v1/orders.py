@@ -591,16 +591,29 @@ def confirm_order(
     """
     Confirm order by customer (changes status to CONFIRMED).
     """
+    print(f"🔍 Debug confirm_order: order_id={order_id}, current_user={current_user}")
+    
     order = order_crud.get(db, id=order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     
+    print(f"🔍 Debug: Found order: id={order.id}, customer_id={order.customer_id}, status={order.status}")
+    
     # Check permissions - only the customer who owns the order or staff can confirm
+    # Allow Rasa bot (when current_user has specific marker) or allow walk-in orders
     if current_user:
         from app.models.user import UserRole
-        if (current_user.role == UserRole.customer and 
-            order.customer_id != current_user.id):
-            raise HTTPException(status_code=403, detail="Not enough permissions")
+        print(f"🔍 Debug: current_user.role={current_user.role}, current_user.id={current_user.id}")
+        
+        # If customer, must own the order or order must be walk-in (no customer_id)
+        if current_user.role == UserRole.customer:
+            # For walk-in orders (no customer_id), allow any authenticated user to confirm
+            if order.customer_id is not None and order.customer_id != current_user.id:
+                print(f"❌ Permission denied: order.customer_id={order.customer_id}, current_user.id={current_user.id}")
+                raise HTTPException(
+                    status_code=403, 
+                    detail=f"Not enough permissions. Order belongs to customer {order.customer_id}, but you are {current_user.id}"
+                )
     
     # Check if order is in a confirmable state
     if order.status not in [OrderStatus.pending, OrderStatus.draft]:
@@ -610,9 +623,11 @@ def confirm_order(
         )
     
     # Update status to confirmed
+    print(f"✅ Confirming order {order_id}")
     order_update = OrderUpdate(status=OrderStatus.confirmed)
     order = order_crud.update(db, db_obj=order, obj_in=order_update)
     
+    print(f"✅ Order confirmed: status={order.status}")
     return order
 
 

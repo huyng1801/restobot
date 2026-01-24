@@ -361,6 +361,16 @@ nlu:
     - modify order
     - change quantity
     - sửa lại đơn
+    - sửa số lượng
+    - thay đổi số lượng
+    - sửa số lượng [phở](dish_name) thành 2
+    - đổi số lượng [cơm tấm](dish_name) thành 3
+    - tôi muốn sửa số lượng [bánh mì](dish_name)
+    - sửa số lượng [bún](dish_name)
+    - thay đổi số lượng [gỏi cuốn](dish_name) thành 4
+    - tôi muốn thay đổi số lượng
+    - sửa lại số lượng
+    - đổi số lượng
 
 - intent: confirm_order
   examples: |

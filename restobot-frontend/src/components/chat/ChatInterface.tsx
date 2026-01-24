@@ -72,9 +72,6 @@ const messageSuggestions = [
   { category: '🍽️ Thực đơn', text: 'Có những món gì', color: '#FF9800' },
   { category: '🍽️ Thực đơn', text: 'Món nổi bật', color: '#FF9800' },
   { category: '🍽️ Thực đơn', text: 'Bạn recommend cái gì', color: '#FF9800' },
-  { category: '🍽️ Thực đơn', text: 'Món được ưa chuộng', color: '#FF9800' },
-  { category: '🍽️ Thực đơn', text: 'Món đặc biệt', color: '#FF9800' },
-  { category: '🍽️ Thực đơn', text: 'Signature dish', color: '#FF9800' },
   { category: '🍽️ Thực đơn', text: 'Có món gì ở đây', color: '#FF9800' },
   
   // Booking - Match NLU examples exactly
@@ -94,10 +91,7 @@ const messageSuggestions = [
   { category: '🛒 Gọi món', text: 'Xem đơn hàng', color: '#9C27B0' },
   { category: '🛒 Gọi món', text: 'Xác nhận đơn hàng', color: '#9C27B0' },
   { category: '🛒 Gọi món', text: 'Thêm món vào đơn', color: '#9C27B0' },
-  { category: '🛒 Gọi món', text: 'Sửa đơn hàng', color: '#9C27B0' },
   { category: '🛒 Gọi món', text: 'Hủy đơn hàng', color: '#F44336' },
-  { category: '💳 Thanh toán', text: 'Tôi muốn thanh toán', color: '#795548' },
-  { category: '💳 Thanh toán', text: 'Thanh toán đơn hàng', color: '#795548' },
   { category: '💳 Thanh toán', text: 'Thanh toán tiền mặt', color: '#795548' },
   
   // Restaurant Info
@@ -114,16 +108,9 @@ const messageSuggestions = [
   { category: '🍜 Món ăn', text: 'Thêm Bún Bò Huế', color: '#E91E63' },
   { category: '🍜 Món ăn', text: 'Gọi Cơm Tấm Sướn Nướng', color: '#E91E63' },
   { category: '🍜 Món ăn', text: 'Cho tôi Gỏi Cuốn Tôm Thịt', color: '#E91E63' },
-  { category: '🍜 Món ăn', text: 'Nem Rán 2 đĩa', color: '#E91E63' },
-  { category: '🍜 Món ăn', text: 'Sinh Tố Xoài', color: '#E91E63' },
   { category: '🍜 Món ăn', text: 'Chè Ba Màu', color: '#E91E63' },
-  { category: '🍜 Món ăn', text: 'Phở Chay', color: '#E91E63' },
   
   // Confirmations
-  { category: '✅ Xác nhận', text: 'Có, tôi đồng ý', color: '#4CAF50' },
-  { category: '✅ Xác nhận', text: 'Được rồi', color: '#4CAF50' },
-  { category: '✅ Xác nhận', text: 'Xác nhận', color: '#4CAF50' },
-  { category: '❌ Từ chối', text: 'Không, cảm ơn', color: '#F44336' },
   { category: '❌ Từ chối', text: 'Hủy bỏ', color: '#F44336' },
   { category: '👋 Tạm biệt', text: 'Cảm ơn bạn', color: '#9E9E9E' },
   { category: '👋 Tạm biệt', text: 'Tạm biệt', color: '#9E9E9E' },

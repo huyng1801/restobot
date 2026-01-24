@@ -130,7 +130,7 @@ class ActionProcessPayment(Action):
         authenticated_user = get_authenticated_user_from_tracker(tracker)
         
         if not authenticated_user:
-            dispatcher.utter_message(text="🔐 Vui lòng đăng nhập để thanh toán.")
+            dispatcher.utter_message(text="Vui lòng thành toán tại quầy hoặc liên hệ với nhân viên để thành toán.")
             return []
 
         payment_order_id = tracker.get_slot('payment_order_id')
@@ -149,7 +149,7 @@ class ActionProcessPayment(Action):
             payment_method = 'cash'  # Default to cash
         
         if not payment_order_id:
-            dispatcher.utter_message(text="❌ Không tìm thấy thông tin đơn hàng để thanh toán.")
+            dispatcher.utter_message(text="Vui lòng đến quầy thanh toán hoặc liên hệ với nhân viên để thành toán.")
             return []
 
         try:

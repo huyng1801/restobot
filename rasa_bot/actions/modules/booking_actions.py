@@ -381,6 +381,18 @@ Giờ "{reservation_time}" không hợp lệ.
 
             # Check if booking time is at least 1 hour from now
             booking_datetime = datetime.combine(date_obj.date(), time_obj.time())
+            
+            # DEBUG: Log exact values
+            now = datetime.now()
+            one_hour_later = now + timedelta(hours=1)
+            print(f"🔍 DEBUG - Booking validation:")
+            print(f"  date_obj: {date_obj} (type: {type(date_obj)})")
+            print(f"  time_obj: {time_obj} (type: {type(time_obj)})")
+            print(f"  booking_datetime: {booking_datetime}")
+            print(f"  datetime.now(): {now}")
+            print(f"  datetime.now() + 1h: {one_hour_later}")
+            print(f"  booking_datetime <= one_hour_later? {booking_datetime <= one_hour_later}")
+            
             if booking_datetime <= datetime.now() + timedelta(hours=1):
                 dispatcher.utter_message(text="⏱️ Vui lòng đặt bàn trước ít nhất 1 giờ.")
                 return []
@@ -625,7 +637,7 @@ class ActionCancelReservation(Action):
             print(f"🔍 Debug: Final active_reservations count: {len(active_reservations)}")
             
             if not active_reservations:
-                dispatcher.utter_message(text="""ℹ️ **KHÔNG TÌM THẤY ĐẶT BÀN ACTIVE**
+                dispatcher.utter_message(text="""ℹ️ **KHÔNG TÌM THẤY ĐẶT BÀN**
 Bạn không có đặt bàn nào đang chờ xử lý (từ hôm nay trở đi).
 
 📋 **Có thể:**
